@@ -31,6 +31,10 @@ fun App() {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            Text(
+                "FitMeet — Meet people. Move together.",
+                style = MaterialTheme.typography.headlineSmall,
+            )
             Button(onClick = { showContent = !showContent }) {
                 Text("Click me!")
             }
