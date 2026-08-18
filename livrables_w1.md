@@ -1,0 +1,2 @@
+Définition de la problématique : 
+Les personnes souhaitant pratiquer un sport à plusieurs rencontrent aujourd'hui des difficultés à trouver, au bon moment et près de chez elles, des partenaires ou événements correspondant à leur sport, leur niveau et leurs disponibilités. Les solutions existantes sont souvent dispersées entre réseaux sociaux, groupes privés, clubs et applications spécialisées. FitMeet vise à centraliser cette découverte afin de rendre l'organisation et la pratique sportive locale plus simple, accessible et spontanée.
