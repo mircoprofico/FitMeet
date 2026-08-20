@@ -23,7 +23,7 @@ En tant que simple utilisateur de l'application, je souhaite pouvoir créer une 
 ### Critère d'acceptance
 - Il est possible pour tout utilisateur de créer une activité
 - Lors de la création de l'activité, il doit être précisé la date et l'heure ainsi que le lieux de celle-ci et le type d'activité
-- l'utilisateur peut fixer un nombre de personne maximale
+- l'utilisateur peut fixer un nombre de personne maximale, ainsi que le niveau de difficulté (débutant/experimenté/peu importe/...)
 - L'utilisateur a la possibilité d'ajouter une description à son poste pour donner plus de détails
 
 ## 4. Recherche spécialisée
@@ -58,20 +58,11 @@ En tant qu'utilisateur venant de s'inscrire à une activité, je veux pouvoir di
 - Lorsqu'un utilisateur rejoin une activité, il est ajouté au groupe associé
 - Le groupe disparait après que l'activité se soit passé (on veut éviter d'avoir une grosse quantité de groupes dans la messagerie après 2 semaines)
 
-
-
-
-## 
+## 8. Liste d'Activité
 ### Story
-
+En tant qu'utilisateur inscrit à une ou plusieurs activitées, je souhaite avoir un accès facile à celle-ci afin d'avoir les informations rapidement
 ### Critère d'acceptance
+- Il est possible d'un simple clic d'acceder aux activités dont l'utilisateur fait parti
+- Au niveau de la messagerie, il est possible, directement depuis un groupe, de voir les détails de l'activité en question
 
-## 
-### Story
 
-### Critère d'acceptance
-
-## 
-### Story
-
-### Critère d'acceptance
