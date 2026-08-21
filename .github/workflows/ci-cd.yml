@@ -1,0 +1,128 @@
+name: CI/CD
+
+# -----------------------------------------------------------------------------
+# QUAND CE WORKFLOW SE DÉCLENCHE
+# -----------------------------------------------------------------------------
+
+on:
+  pull_request:
+    branches: [main]
+  # personne ne peut push sur main, donc si un commit y arrive
+  # c'est qu'une PR vient d'être merge
+  push:
+    branches: [main]
+
+
+jobs:
+
+  # ---------------------------------------------------------------------------
+  # CI — ANDROID
+  # build, tests, et on garde l'APK en artifact
+  # ---------------------------------------------------------------------------
+
+  android:
+    # attention, c'est ce nom-là que la branch protection de main réclame
+    name: Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # le runner arrive vide, faut lui installer un JDK
+      # zulu et pas autre chose : c'est ce que le projet demande dans
+      # gradle-daemon-jvm.properties. et 21, parce que le 26 casse tout
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 21
+
+      # sans ce cache Gradle redownload tout à chaque run, on passe
+      # de 12 minutes à 4
+      - uses: gradle/actions/setup-gradle@v4
+
+      # ----- les 3 commandes qu'on tape nous-mêmes -----
+      # dans l'ordre du plus rapide au plus lent : autant savoir vite si ça casse
+
+      - name: Lint
+        run: ./gradlew :androidApp:lintDebug
+
+      - name: Tests partages
+        run: ./gradlew :shared:allTests
+
+      - name: Build APK
+        run: ./gradlew :androidApp:assembleDebug
+
+      # ----- on garde l'APK -----
+      # le runner s'éteint après, faut l'upload avant
+
+      - name: Publier l'APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: fitmeet-debug-apk
+          path: androidApp/build/outputs/apk/debug/*.apk
+          retention-days: 7
+
+
+  # ---------------------------------------------------------------------------
+  # CI — iOS
+  # deuxième runner, sous macOS, parce que build pour iOS sans les outils Apple
+  # c'est impossible. il démarre vide lui aussi, d'où les mêmes steps de setup.
+  # les deux runners tournent en parallèle
+  # ---------------------------------------------------------------------------
+
+  ios:
+    # pareil, nom réclamé par la branch protection de main
+    name: iOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # on build juste le framework Kotlin partagé, pas l'app Xcode.
+      # le nom à rallonge, c'est Gradle qui génère la task à partir de
+      # iosSimulatorArm64() dans shared/build.gradle.kts
+      - name: Compiler le framework partage
+        run: ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
+
+
+  # ---------------------------------------------------------------------------
+  # CD — RELEASE
+  # ne tourne qu'après un merge sur main, jamais sur une PR
+  # ---------------------------------------------------------------------------
+
+  release:
+    name: Publier une release
+    runs-on: ubuntu-latest
+    # il attend les deux autres jobs. si un build casse, on release rien
+    needs: [android, ios]
+    # sur une PR il est skip, il ne tourne qu'après un merge.
+    # c'est cette ligne qui sépare le CI du CD
+    if: github.event_name == 'push'
+    # par défaut un job a juste le read sur le repo. release = write,
+    # sans ça on se prend un 403
+    permissions:
+      contents: write
+    steps:
+      # on download l'artifact que le job Android a déjà build.
+      # pas de rebuild : on release exactement ce qui a été testé
+      - name: Recuperer l'APK
+        uses: actions/download-artifact@v4
+        with:
+          name: fitmeet-debug-apk
+
+      - name: Creer la release
+        env:
+          # token temporaire généré pour ce run, gh le lit tout seul
+          GH_TOKEN: ${{ github.token }}
+        # run_number monte de 1 à chaque run, ça fait le numéro
+        # de version sans qu'on ait à y penser
+        run: |
+          gh release create "v1.0.${{ github.run_number }}" *.apk \
+            --repo ${{ github.repository }} \
+            --title "FitMeet v1.0.${{ github.run_number }}" \
+            --notes "Build automatique du commit ${{ github.sha }}"
