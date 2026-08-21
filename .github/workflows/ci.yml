@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  android:
+    name: Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Zulu 21 : le projet epingle le vendor Azul dans
+      # gradle/gradle-daemon-jvm.properties. Un autre JDK forcerait Gradle
+      # a telecharger le sien a chaque build.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 21
+
+      # Garde les dependances et les resultats de compilation d'un build
+      # a l'autre. Sans ca, chaque build retelecharge tout.
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Lint
+        run: ./gradlew :androidApp:lintDebug
+
+      - name: Tests partages
+        run: ./gradlew :shared:allTests
+
+      - name: Build APK
+        run: ./gradlew :androidApp:assembleDebug
