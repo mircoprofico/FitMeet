@@ -49,3 +49,12 @@ Les événements disponibles sont visibles sur une carte, ou bien sous forme de 
 - **Utilisabilité** : interface simple et intuitive, accessible à des utilisateurs non technophiles
 - **Compatibilité** : l'application doit fonctionner sur iOS et Android, et s'adapter à différentes tailles d'écran
 - **Maintenabilité** : code structuré de manière modulaire pour faciliter l'évolution du produit
+
+## Différence par rapport aux solutions existantes
+
+A la différence de Smatch, ce ne sont pas des personnes qui matchent, mais des sessions. A la place de "Je cherche quelqu'un avec qui faire du sport", l'utilisateur demanderait plutôt "Je veux faire du [sport] jeudi à 18h, qui veut venir ?".
+
+L’objectif est ainsi de passer d’une logique de rencontre entre individus à une logique de création et de participation à des activités sportives concrètes. L’utilisateur peut créer ou rejoindre une session en fonction du sport, de la date, de l’heure, du lieu et du niveau recherché.
+
+Cette approche permet également de réduire le risque de « match sans suite » : le but n’est plus simplement de trouver une personne compatible, mais de réunir rapidement les bonnes personnes autour d’une activité précise.
+
