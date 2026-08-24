@@ -20,7 +20,7 @@ Les événements disponibles sont visibles sur une carte, ou bien sous forme de 
 ## Mockups et landing page
 
 La landing page est disponible [ici](https://mircoprofico.github.io/FitMeet/).
-Les mockups sont disponible [ici](TO BE DONE).
+Les mockups sont disponible [ici](https://www.figma.com/proto/ftAW6jSqKDOlVoF28TAnIB/FitMeet?node-id=60-579&p=f&t=w6UXS0PCQ06uIidI-0&scaling=scale-down&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=60%3A579).
 
 # Définition de la problématique et des utilisateurs cibles : 
 
