@@ -32,7 +32,7 @@ fun App() {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                FitMeet - Meet people. Move together.,
+                "FitMeet - Meet people. Move together.",
                 style = MaterialTheme.typography.headlineSmall,
             )
             Button(onClick = { showContent = !showContent }) {
