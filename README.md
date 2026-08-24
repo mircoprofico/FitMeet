@@ -1,4 +1,4 @@
 # FitMeet
 
 
-Github Pages : https://mircoprofico.github.io/FitMeet/
+landing page : https://mircoprofico.github.io/FitMeet/
