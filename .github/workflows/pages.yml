@@ -1,0 +1,53 @@
+name: Landing page
+
+# -----------------------------------------------------------------------------
+# Publie landingPage/ sur GitHub Pages a chaque merge sur main.
+# Workflow separe du CI/CD : la landing page n'a rien a voir avec l'app,
+# pas la peine de la republier quand seul du Kotlin bouge.
+# -----------------------------------------------------------------------------
+
+on:
+  push:
+    branches: [main]
+    # inutile de redeployer si personne n'a touche a la landing page
+    paths:
+      - landingPage/**
+      - .github/workflows/pages.yml
+  # permet de relancer le deploiement a la main depuis l'onglet Actions
+  workflow_dispatch:
+
+# Pages exige ces 3 permissions, sans elles le deploiement se prend un 403
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# si deux merges tombent coup sur coup, on laisse le deuxieme finir
+# plutot que de publier une version deja perimee
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+
+  deploy:
+    name: Deployer la landing page
+    runs-on: ubuntu-latest
+    # l'URL publique remonte ici, visible directement dans l'onglet Actions
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/configure-pages@v5
+
+      # pas de build : c'est du HTML/CSS statique, on envoie le dossier tel quel
+      - name: Empaqueter le site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: landingPage
+
+      - name: Mettre en ligne
+        id: deployment
+        uses: actions/deploy-pages@v4
