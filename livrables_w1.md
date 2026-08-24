@@ -17,7 +17,10 @@ Les événements disponibles sont visibles sur une carte, ou bien sous forme de 
 - **Encourager la régularité de la pratique sportive** : via la découverte facile d'événements récurrents et la mise en relation avec des pratiquants partageant les mêmes créneaux/niveaux.
 - **Garantir une expérience de découverte fluide** : proposer une recherche intuitive combinant carte interactive, liste filtrable et recommandations pertinentes.
 
+## Mockups et landing page
 
+La landing page est disponible [ici](https://mircoprofico.github.io/FitMeet/).
+Les mockups sont disponible [ici](TO BE DONE).
 
 # Définition de la problématique et des utilisateurs cibles : 
 
