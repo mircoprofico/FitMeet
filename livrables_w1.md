@@ -41,19 +41,19 @@ Enfin, la dimension sociale peut directement influencer la pratique. Les études
 
 ## Personas
 
-**Lucas — 24 ans, sportif occasionnel**
+**Lucas - 24 ans, sportif occasionnel**
 
 Lucas vient d'arriver dans une nouvelle ville et aimerait jouer au badminton ou courir plusieurs fois par mois.
 Besoin : trouver rapidement quelqu'un de son niveau, disponible près de chez lui.
 Frustration : il ne connaît personne localement et ne veut pas rejoindre plusieurs groupes Facebook ou WhatsApp avant de pouvoir organiser une simple séance.
 
-**Sophie — 32 ans, sportive régulière**
+**Sophie - 32 ans, sportive régulière**
 
 Sophie pratique le tennis et le running, mais ses partenaires habituels ne sont pas toujours disponibles.
 Besoin : trouver une activité correspondant précisément à son emploi du temps, son niveau et sa localisation.
 Frustration : organiser une séance nécessite souvent plusieurs messages et dépend fortement de son cercle social existant.
 
-**Marc — responsable d'un club local**
+**Marc, 40 ans - responsable d'un club local**
 
 Marc organise les activités d'un petit club de volley.
 Besoin : rendre les entraînements ouverts visibles, remplir les places disponibles et toucher des personnes extérieures au club.
@@ -376,5 +376,4 @@ ou la passer à quelqu'un d'autre s'il est chargé. On le dit au point quotidien
 
 ### Rythme quotidien
 
-Un point par jour, comme demandé dans le cours : ce qui a avancé, ce qui bloque,
-et ce que chacun prend ensuite.
+Un point par jour, comme demandé dans le cours : ce qui a avancé, ce qui bloque, et ce que chacun prend ensuite.
