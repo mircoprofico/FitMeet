@@ -54,7 +54,7 @@ Sophie pratique le tennis et le running, mais ses partenaires habituels ne sont 
 Besoin : trouver une activité correspondant précisément à son emploi du temps, son niveau et sa localisation.
 Frustration : organiser une séance nécessite souvent plusieurs messages et dépend fortement de son cercle social existant.
 
-**Marc, 40 ans - responsable d'un club local**
+**Marc - 40 ans, responsable d'un club local**
 
 Marc organise les activités d'un petit club de volley.
 Besoin : rendre les entraînements ouverts visibles, remplir les places disponibles et toucher des personnes extérieures au club.
@@ -69,9 +69,6 @@ Parallèlement, des applications généralistes comme Frimake ou Knockk incluent
 ## Problem statement final
 
 Les personnes souhaitant pratiquer un sport à plusieurs rencontrent aujourd'hui des difficultés à trouver, au bon moment et près de chez elles, des partenaires ou événements correspondant à leur sport, leur niveau et leurs disponibilités. Les solutions existantes sont souvent dispersées entre réseaux sociaux, groupes privés, clubs et applications spécialisées. FitMeet vise à centraliser cette découverte afin de rendre l'organisation et la pratique sportive locale plus simple, accessible et spontanée.
-
-
-
 
 # Requirements
 
