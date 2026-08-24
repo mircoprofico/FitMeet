@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FitMeet — Trouve ton prochain partenaire de sport</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0B2545;
+    --navy-light: #13345E;
+    --navy-lighter: #1C4270;
+    --green: #3E8E68;
+    --green-dark: #2E6B4E;
+    --green-pale: #E7F1EC;
+    --coral: #E0623C;
+    --coral-pale: #FBEDE7;
+    --ink: #16233A;
+    --muted: #5B6B7E;
+    --muted-light: #8DA0B5;
+    --cream: #F4F6F5;
+    --white: #FFFFFF;
+    --line: #DEE5E2;
+
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    --container: 1160px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    color: var(--ink);
+    background: var(--cream);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  img { max-width: 100%; display: block; }
+
+  a { color: inherit; text-decoration: none; }
+
+  .wrap {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  ::selection { background: var(--green); color: var(--white); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+
+  /* ---------- Focus states ---------- */
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* ================= NAV ================= */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(11, 37, 69, 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .nav .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-logo svg { height: 26px; width: auto; }
+  .nav-logo-text {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 21px;
+    color: var(--white);
+    letter-spacing: -0.01em;
+  }
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: #C7D4E2;
+    font-size: 14.5px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--green);
+    color: var(--white);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 100px;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .nav-cta:hover { background: #47A379; transform: translateY(-1px); }
+
+  .nav-mobile-toggle { display: none; }
+
+  @media (max-width: 860px) {
+    .nav-links { display: none; }
+  }
+
+  /* ================= HERO ================= */
+  .hero {
+    position: relative;
+    background: var(--navy);
+    padding: 168px 0 0;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .hero-bg-dots {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.5;
+  }
+
+  .hero-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    z-index: -1;
+  }
+  .hero-glow-1 {
+    width: 560px; height: 560px;
+    background: radial-gradient(circle, rgba(62,142,104,0.28) 0%, rgba(62,142,104,0) 70%);
+    top: -220px; right: -140px;
+  }
+  .hero-glow-2 {
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(224,98,60,0.14) 0%, rgba(224,98,60,0) 70%);
+    bottom: -140px; left: -100px;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8FC7AA;
+    margin-bottom: 22px;
+  }
+  .eyebrow .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 4px rgba(62,142,104,0.25);
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(38px, 4.6vw, 58px);
+    line-height: 1.06;
+    letter-spacing: -0.015em;
+    color: var(--white);
+    margin-bottom: 24px;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    line-height: 1.6;
+    color: #B9C8D9;
+    max-width: 480px;
+    margin-bottom: 36px;
+  }
+
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 56px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 15.5px;
+    padding: 15px 28px;
+    border-radius: 100px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+  .btn-primary {
+    background: var(--green);
+    color: var(--white);
+    box-shadow: 0 8px 24px -8px rgba(62,142,104,0.6);
+  }
+  .btn-primary:hover { background: #47A379; transform: translateY(-2px); box-shadow: 0 12px 28px -8px rgba(62,142,104,0.7); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--white);
+    border: 1.5px solid rgba(255,255,255,0.25);
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.05); }
+
+  .hero-proof {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .hero-proof-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .hero-proof-num {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--white);
+  }
+  .hero-proof-label {
+    font-size: 12.5px;
+    color: var(--muted-light);
+  }
+
+  /* Hero phone visual */
+  .hero-visual {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 640px;
+  }
+  .phone-frame {
+    position: relative;
+    z-index: 3;
+    width: 280px;
+    filter: drop-shadow(0 30px 60px rgba(0,0,0,0.45));
+  }
+  .float-card {
+    position: absolute;
+    background: var(--white);
+    border-radius: 16px;
+    padding: 14px 16px;
+    box-shadow: 0 20px 40px -12px rgba(0,0,0,0.35);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .float-card-1 {
+    top: 58px;
+    left: -18px;
+    animation: floatY 5s ease-in-out infinite;
+  }
+  .float-card-2 {
+    bottom: 90px;
+    right: -28px;
+    animation: floatY 5.5s ease-in-out infinite 0.4s;
+  }
+  @keyframes floatY {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .float-card-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+  .float-card-icon.green { background: var(--green-pale); }
+  .float-card-icon.coral { background: var(--coral-pale); }
+  .float-card-title { font-size: 12.5px; font-weight: 700; color: var(--ink); }
+  .float-card-sub { font-size: 11px; color: var(--muted); }
+
+  @media (max-width: 860px) {
+    .hero { padding-top: 140px; }
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-visual { height: 460px; margin-top: 20px; }
+    .phone-frame { width: 230px; }
+    .float-card { display: none; }
+    .hero-title { font-size: 36px; }
+  }
+
+  /* ================= WAVE DIVIDER ================= */
+  .wave {
+    display: block;
+    width: 100%;
+    height: 90px;
+    margin-top: 60px;
+  }
+
+  /* ================= SECTION SHARED ================= */
+  section { position: relative; }
+  .section-pad { padding: 100px 0; }
+  .section-head {
+    max-width: 620px;
+    margin-bottom: 64px;
+  }
+  .section-eyebrow {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--green-dark);
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 3.4vw, 42px);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+  .section-sub {
+    font-size: 16.5px;
+    color: var(--muted);
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+
+  /* ================= PROBLEM ================= */
+  .problem { background: var(--cream); }
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .problem-card {
+    background: var(--white);
+    border-radius: 18px;
+    padding: 30px 28px;
+    border: 1px solid var(--line);
+  }
+  .problem-card-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--coral-pale);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+  .problem-card h3 {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--ink);
+  }
+  .problem-card p {
+    font-size: 14.5px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 860px) {
+    .problem-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ================= HOW IT WORKS ================= */
+  .how { background: var(--navy); color: var(--white); }
+  .how .section-eyebrow { color: #8FC7AA; }
+  .how .section-title { color: var(--white); }
+  .how .section-sub { color: #B9C8D9; }
+
+  .how-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    position: relative;
+    counter-reset: step;
+  }
+  .how-step {
+    padding: 0 28px 0 0;
+    position: relative;
+  }
+  .how-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 26px;
+    right: -4px;
+    width: 44px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(62,142,104,0.6), transparent);
+  }
+  .how-step-num {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+    background: var(--green);
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .how-step h3 {
+    font-family: var(--font-display);
+    font-size: 21px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .how-step p {
+    font-size: 14.5px;
+    color: #AFC3D6;
+    line-height: 1.65;
+    max-width: 300px;
+  }
+
+  @media (max-width: 860px) {
+    .how-steps { grid-template-columns: 1fr; gap: 40px; }
+    .how-step:not(:last-child)::after { display: none; }
+  }
+
+  /* ================= FEATURES (bento) ================= */
+  .features { background: var(--cream); }
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: auto auto;
+    gap: 20px;
+  }
+  .bento-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 32px;
+    border: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 260px;
+    position: relative;
+    overflow: hidden;
+  }
+  .bento-card.large { grid-column: span 4; }
+  .bento-card.small { grid-column: span 2; }
+  .bento-card.dark {
+    background: var(--navy);
+    border-color: var(--navy);
+  }
+  .bento-tag {
+    position: absolute;
+    top: 28px; left: 28px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--green-dark);
+  }
+  .bento-card.dark .bento-tag { color: #8FC7AA; }
+  .bento-card h3 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+  .bento-card.dark h3 { color: var(--white); }
+  .bento-card p {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .bento-card.dark p { color: #B9C8D9; }
+
+  .bento-card.map-card {
+    background: linear-gradient(135deg, #E7F1EC 0%, #DCEEE5 100%);
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+  }
+  .bento-card.map-card img {
+    max-width: 62%;
+    height: auto;
+    filter: drop-shadow(0 20px 30px rgba(11,37,69,0.25));
+  }
+
+  .chat-bento { justify-content: space-between; }
+  .event-bento { justify-content: space-between; }
+  .event-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 44px 0 24px;
+  }
+  .event-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .event-row-icon {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    background: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .event-row-mid { flex: 1; min-width: 0; }
+  .event-row-title { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+  .event-row-sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .event-row-badge {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--green-dark);
+    background: var(--green-pale);
+    padding: 5px 10px;
+    border-radius: 100px;
+    flex-shrink: 0;
+  }
+
+  .chat-bubbles {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 44px 0 24px;
+  }
+  .chat-bubble {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 16px;
+    border-radius: 14px;
+    max-width: 72%;
+    line-height: 1.4;
+  }
+  .chat-bubble.left {
+    background: rgba(255,255,255,0.08);
+    color: #DCE6F0;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+  }
+  .chat-bubble.right {
+    background: var(--green);
+    color: var(--white);
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+
+  .chip-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .chip {
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 6px 13px;
+    border-radius: 100px;
+    background: var(--green-pale);
+    color: var(--green-dark);
+  }
+
+  @media (max-width: 860px) {
+    .bento { grid-template-columns: 1fr; }
+    .bento-card.large, .bento-card.small { grid-column: span 1; }
+  }
+
+  /* ================= FOR CLUBS ================= */
+  .clubs { background: var(--white); }
+  .clubs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+  }
+  .clubs-list {
+    list-style: none;
+    margin-top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .clubs-list li {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .clubs-check {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--green-pale);
+    color: var(--green-dark);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .clubs-list-text strong {
+    display: block;
+    font-size: 15.5px;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+  .clubs-list-text span {
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .clubs-visual {
+    background: var(--navy);
+    border-radius: 24px;
+    padding: 44px;
+    position: relative;
+    overflow: hidden;
+  }
+  .clubs-visual-inner {
+    background: var(--navy-light);
+    border-radius: 16px;
+    padding: 26px;
+  }
+  .clubs-visual-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .clubs-visual-row:last-child { border-bottom: none; }
+  .clubs-visual-left { display: flex; align-items: center; gap: 12px; }
+  .clubs-visual-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: rgba(62,142,104,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .clubs-visual-title { font-size: 13.5px; font-weight: 600; color: var(--white); }
+  .clubs-visual-sub { font-size: 11.5px; color: var(--muted-light); }
+  .clubs-visual-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 100px;
+    background: var(--green);
+    color: var(--white);
+  }
+
+  @media (max-width: 860px) {
+    .clubs-grid { grid-template-columns: 1fr; gap: 40px; }
+    .clubs-visual { padding: 24px; }
+  }
+
+  /* ================= SPORTS MARQUEE ================= */
+  .sports { background: var(--cream); padding: 70px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .sports-label {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+  .sports-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .sport-pill {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 22px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* ================= TESTIMONIAL / STATS ================= */
+  .stats { background: var(--cream); }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .stat-card {
+    background: var(--white);
+    border-radius: 18px;
+    padding: 36px 30px;
+    border: 1px solid var(--line);
+    text-align: left;
+  }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 42px;
+    font-weight: 600;
+    color: var(--green-dark);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .stat-label {
+    font-size: 14.5px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  @media (max-width: 860px) {
+    .stats-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ================= CTA ================= */
+  .cta {
+    background: var(--navy);
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .cta-inner {
+    text-align: center;
+    padding: 110px 0;
+    position: relative;
+  }
+  .cta-title {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 4vw, 46px);
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: -0.01em;
+    margin-bottom: 20px;
+  }
+  .cta-title em { color: var(--green); font-style: italic; }
+  .cta-sub {
+    font-size: 17px;
+    color: #B9C8D9;
+    max-width: 460px;
+    margin: 0 auto 36px;
+  }
+  .cta-actions {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  /* ================= FOOTER ================= */
+  .footer { background: var(--navy); border-top: 1px solid rgba(255,255,255,0.08); padding: 48px 0 32px; }
+  .footer-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 24px;
+  }
+  .footer-logo { display: flex; align-items: center; gap: 8px; }
+  .footer-logo svg { height: 22px; }
+  .footer-logo-text {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--white);
+  }
+  .footer-links {
+    display: flex;
+    gap: 28px;
+    list-style: none;
+    flex-wrap: wrap;
+  }
+  .footer-links a { font-size: 13.5px; color: var(--muted-light); }
+  .footer-links a:hover { color: var(--white); }
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12.5px;
+    color: var(--muted-light);
+  }
+
+  /* ================= REVEAL ANIMATION ================= */
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="nav">
+  <div class="wrap">
+    <a href="#top" class="nav-logo">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#3E8E68"/>
+        <circle cx="12" cy="9" r="3" fill="white"/>
+      </svg>
+      <span class="nav-logo-text">FitMeet</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#comment-ca-marche">Comment ça marche</a></li>
+      <li><a href="#fonctionnalites">Fonctionnalités</a></li>
+      <li><a href="#clubs">Pour les clubs</a></li>
+      <li><a href="#sports">Sports</a></li>
+    </ul>
+    <a href="#rejoindre" class="nav-cta">Rejoindre FitMeet</a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="top">
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
+
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow"><span class="dot"></span> Nouveau — bêta ouverte</div>
+      <h1 class="hero-title">Ton prochain match<br>commence par <em>ici</em>.</h1>
+      <p class="hero-sub">FitMeet connecte les sportifs près de chez toi. Trouve un partenaire de padel, rejoins une équipe de foot ou un groupe de running — au bon niveau, au bon moment.</p>
+      <div class="hero-actions">
+        <a href="#rejoindre" class="btn btn-primary">
+          Trouver une activité
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#comment-ca-marche" class="btn btn-ghost">Voir comment ça marche</a>
+      </div>
+      <div class="hero-proof">
+        <div class="hero-proof-item">
+          <span class="hero-proof-num">3</span>
+          <span class="hero-proof-label">villes suisses au lancement</span>
+        </div>
+        <div class="hero-proof-item">
+          <span class="hero-proof-num">12+</span>
+          <span class="hero-proof-label">sports disponibles</span>
+        </div>
+        <div class="hero-proof-item">
+          <span class="hero-proof-num">&lt; 2s</span>
+          <span class="hero-proof-label">pour trouver un événement</span>
+        </div>
+        <div class="hero-proof-item">
+          <span class="hero-proof-num">99%</span>
+          <span class="hero-proof-label">d'utilisateurs satisfaits jusqu'à présent (les 1% restants, ce sont les mauvais joueurs qui ont perdu leur match de padel)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <img class="phone-frame" src="assets/mockup_carte.png" alt="Carte interactive FitMeet montrant des événements sportifs à proximité" />
+      <div class="float-card float-card-1">
+        <div class="float-card-icon green">⚽</div>
+        <div>
+          <div class="float-card-title">Petit match</div>
+          <div class="float-card-sub">3/10 places · Morges</div>
+        </div>
+      </div>
+      <div class="float-card float-card-2">
+        <div class="float-card-icon coral">🎾</div>
+        <div>
+          <div class="float-card-title">Tennis 1 contre 1</div>
+          <div class="float-card-sub">Intermédiaire · Etoy</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <svg class="wave" viewBox="0 0 1440 90" preserveAspectRatio="none">
+    <path d="M0,40 C360,90 1080,0 1440,50 L1440,90 L0,90 Z" fill="#F4F6F5"></path>
+  </svg>
+</header>
+
+<!-- ============ PROBLEM ============ -->
+<section class="problem section-pad">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Le constat</div>
+      <h2 class="section-title">Trouver un partenaire de sport ne devrait pas être un projet en soi</h2>
+      <p class="section-sub">Aujourd'hui, l'organisation d'une simple séance dépend de groupes WhatsApp dispersés, du bouche-à-oreille ou d'un cercle d'amis pas toujours disponible.</p>
+    </div>
+
+    <div class="problem-grid">
+      <div class="problem-card reveal">
+        <div class="problem-card-icon">💬</div>
+        <h3>Communautés éclatées</h3>
+        <p>Un groupe WhatsApp par club, un fil Facebook par quartier — impossible de tout suivre pour trouver une place libre.</p>
+      </div>
+      <div class="problem-card reveal">
+        <div class="problem-card-icon">🎯</div>
+        <h3>Critères difficiles à croiser</h3>
+        <p>Sport, niveau, lieu et disponibilité en même temps : les outils génériques ne filtrent pas assez précisément.</p>
+      </div>
+      <div class="problem-card reveal">
+        <div class="problem-card-icon">📍</div>
+        <h3>Peu de visibilité locale</h3>
+        <p>Les clubs peinent à faire connaître leurs créneaux ouverts en dehors de leurs membres habituels.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="how section-pad" id="comment-ca-marche">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Comment ça marche</div>
+      <h2 class="section-title">Trois étapes, une prochaine séance</h2>
+      <p class="section-sub">Pas d'inscription à un club, pas de groupe à rejoindre. Juste l'activité qu'il te faut, au moment où tu es libre.</p>
+    </div>
+
+    <div class="how-steps">
+      <div class="how-step reveal">
+        <div class="how-step-num">01</div>
+        <h3>Explore</h3>
+        <p>Parcours les événements sur la carte ou en liste, filtrés par sport, niveau et distance autour de toi.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-step-num">02</div>
+        <h3>Rejoins</h3>
+        <p>Une place te convient ? Rejoins l'événement en un geste, tant qu'il reste des places disponibles.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-step-num">03</div>
+        <h3>Coordonne-toi</h3>
+        <p>Échange avec les participants dans le chat de l'événement pour régler les derniers détails avant d'arriver.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURES BENTO ============ -->
+<section class="features section-pad" id="fonctionnalites">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Fonctionnalités</div>
+      <h2 class="section-title">Tout ce qu'il faut pour jouer, rien de superflu</h2>
+    </div>
+
+    <div class="bento">
+      <div class="bento-card large reveal event-bento">
+        <div class="bento-tag">Découverte</div>
+        <div class="event-rows">
+          <div class="event-row">
+            <div class="event-row-icon">⚽</div>
+            <div class="event-row-mid">
+              <div class="event-row-title">Petit match</div>
+              <div class="event-row-sub">Aujourd'hui 14h30 · Morges</div>
+            </div>
+            <div class="event-row-badge">3/10</div>
+          </div>
+          <div class="event-row">
+            <div class="event-row-icon">🎾</div>
+            <div class="event-row-mid">
+              <div class="event-row-title">Tennis 1 contre 1</div>
+              <div class="event-row-sub">Demain 14h00 · Etoy · Intermédiaire</div>
+            </div>
+            <div class="event-row-badge">1/2</div>
+          </div>
+        </div>
+        <h3>Liste filtrable et détaillée</h3>
+        <p>Sport, horaire, lieu, niveau et places restantes visibles d'un coup d'œil — compare et choisis en quelques secondes.</p>
+        <div class="chip-row">
+          <span class="chip">Par sport</span>
+          <span class="chip">Par niveau</span>
+          <span class="chip">Par distance</span>
+        </div>
+      </div>
+      <div class="bento-card small map-card reveal">
+        <img src="assets/mockup_creation.png" alt="Écran de création d'une nouvelle activité sportive sur FitMeet, avec choix du type de sport" />
+      </div>
+      <div class="bento-card small dark reveal">
+        <div class="bento-tag">Création</div>
+        <h3>Organise en 1 minute</h3>
+        <p>Choisis un sport, une date, un lieu et un nombre de places — ton événement est publié instantanément.</p>
+      </div>
+      <div class="bento-card large dark reveal chat-bento">
+        <div class="bento-tag">Coordination</div>
+        <div class="chat-bubbles">
+          <div class="chat-bubble left">On se retrouve à la gare ?</div>
+          <div class="chat-bubble right">J'en ai pris une ouai</div>
+        </div>
+        <h3>Chat par événement</h3>
+        <p>Chaque événement a son propre fil de discussion : plus besoin d'échanger des numéros pour confirmer un lieu de rendez-vous.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOR CLUBS ============ -->
+<section class="clubs section-pad" id="clubs">
+  <div class="wrap clubs-grid">
+    <div class="reveal">
+      <div class="section-eyebrow">Pour les clubs & associations</div>
+      <h2 class="section-title">Remplis tes créneaux, touche de nouveaux membres</h2>
+      <p class="section-sub">FitMeet donne à ton club un canal simple pour rendre ses séances ouvertes visibles, sans passer par cinq réseaux différents.</p>
+      <ul class="clubs-list">
+        <li>
+          <div class="clubs-check">✓</div>
+          <div class="clubs-list-text">
+            <strong>Publie tes séances ouvertes</strong>
+            <span>En quelques minutes, sans site web à maintenir.</span>
+          </div>
+        </li>
+        <li>
+          <div class="clubs-check">✓</div>
+          <div class="clubs-list-text">
+            <strong>Suis les inscriptions en direct</strong>
+            <span>Vois qui rejoint, gère les places restantes automatiquement.</span>
+          </div>
+        </li>
+        <li>
+          <div class="clubs-check">✓</div>
+          <div class="clubs-list-text">
+            <strong>Touche un public au-delà de tes membres</strong>
+            <span>Sois visible auprès des sportifs de ta région, pas seulement ta liste de contacts.</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="clubs-visual reveal">
+      <div class="clubs-visual-inner">
+        <div class="clubs-visual-row">
+          <div class="clubs-visual-left">
+            <div class="clubs-visual-icon">🏐</div>
+            <div>
+              <div class="clubs-visual-title">Entraînement ouvert</div>
+              <div class="clubs-visual-sub">Club de volley · Ce soir 19h00</div>
+            </div>
+          </div>
+          <div class="clubs-visual-badge">7/12</div>
+        </div>
+        <div class="clubs-visual-row">
+          <div class="clubs-visual-left">
+            <div class="clubs-visual-icon">🏸</div>
+            <div>
+              <div class="clubs-visual-title">Session découverte</div>
+              <div class="clubs-visual-sub">Badminton Club · Demain 18h30</div>
+            </div>
+          </div>
+          <div class="clubs-visual-badge">3/8</div>
+        </div>
+        <div class="clubs-visual-row">
+          <div class="clubs-visual-left">
+            <div class="clubs-visual-icon">🏊</div>
+            <div>
+              <div class="clubs-visual-title">Nage libre encadrée</div>
+              <div class="clubs-visual-sub">Club aquatique · Samedi 10h00</div>
+            </div>
+          </div>
+          <div class="clubs-visual-badge">Complet</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SPORTS ============ -->
+<section class="sports" id="sports">
+  <div class="wrap">
+    <div class="sports-label">Sports disponibles au lancement</div>
+    <div class="sports-row">
+      <div class="sport-pill">⚽ Football</div>
+      <div class="sport-pill">🎾 Tennis</div>
+      <div class="sport-pill">🏀 Basketball</div>
+      <div class="sport-pill">🏃 Running</div>
+      <div class="sport-pill">🏓 Padel</div>
+      <div class="sport-pill">🏸 Badminton</div>
+      <div class="sport-pill">🏐 Volleyball</div>
+      <div class="sport-pill">🚴 Cyclisme</div>
+      <div class="sport-pill">+ plus à venir</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATS / WHY ============ -->
+<section class="stats section-pad">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Pourquoi FitMeet</div>
+      <h2 class="section-title">Pensé pour la pratique locale, pas pour le scroll</h2>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card reveal">
+        <div class="stat-num">1</div>
+        <div class="stat-label">Application pour découvrir, rejoindre et organiser — plus besoin de jongler entre plusieurs outils.</div>
+      </div>
+      <div class="stat-card reveal">
+        <div class="stat-num">100%</div>
+        <div class="stat-label">Géolocalisé : chaque événement affiché est proche de toi, sur une carte claire et interactive.</div>
+      </div>
+      <div class="stat-card reveal">
+        <div class="stat-num">RGPD</div>
+        <div class="stat-label">Données hébergées en conformité, échanges chiffrés, sans revente à des tiers.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta" id="rejoindre">
+  <div class="hero-glow hero-glow-1" style="top:-180px; right:-160px;"></div>
+  <div class="wrap cta-inner">
+    <h2 class="cta-title">Prêt pour ta <em>prochaine séance</em> ?</h2>
+    <p class="cta-sub">Rejoins la bêta FitMeet et sois parmi les premiers à découvrir les événements sportifs près de chez toi.</p>
+    <div class="cta-actions">
+      <a href="#top" class="btn btn-primary">Rejoindre la bêta</a>
+      <a href="#top" class="btn btn-ghost">En savoir plus</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <a href="#top" class="footer-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#3E8E68"/>
+          <circle cx="12" cy="9" r="3" fill="white"/>
+        </svg>
+        <span class="footer-logo-text">FitMeet</span>
+      </a>
+      <ul class="footer-links">
+        <li><a href="#comment-ca-marche">Comment ça marche</a></li>
+        <li><a href="#fonctionnalites">Fonctionnalités</a></li>
+        <li><a href="#clubs">Pour les clubs</a></li>
+        <li><a href="#sports">Sports</a></li>
+      </ul>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 FitMeet. Projet étudiant.</span>
+      <span>Fait à Lausanne, pour le sport local.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  revealEls.forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
