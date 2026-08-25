@@ -17,7 +17,11 @@ Les événements disponibles sont visibles sur une carte, ou bien sous forme de 
 - **Encourager la régularité de la pratique sportive** : via la découverte facile d'événements récurrents et la mise en relation avec des pratiquants partageant les mêmes créneaux/niveaux.
 - **Garantir une expérience de découverte fluide** : proposer une recherche intuitive combinant carte interactive, liste filtrable et recommandations pertinentes.
 
+## Mockups, wireframe et landing page
 
+La landing page est disponible [ici](https://mircoprofico.github.io/FitMeet/).
+Le wireframe est disponibe [ici](https://www.figma.com/proto/ftAW6jSqKDOlVoF28TAnIB/FitMeet?node-id=60-579&t=eeyycVbF7Lg9t4ZN-1)
+Les mockups sont disponible [ici](https://www.figma.com/proto/ftAW6jSqKDOlVoF28TAnIB/FitMeet?node-id=141-1282&t=eeyycVbF7Lg9t4ZN-1).
 
 # Définition de la problématique et des utilisateurs cibles : 
 
@@ -370,5 +374,4 @@ ou la passer à quelqu'un d'autre s'il est chargé. On le dit au point quotidien
 
 ### Rythme quotidien
 
-Un point par jour, comme demandé dans le cours : ce qui a avancé, ce qui bloque,
-et ce que chacun prend ensuite.
+Un point par jour, comme demandé dans le cours : ce qui a avancé, ce qui bloque, et ce que chacun prend ensuite.

@@ -1,6 +1,4 @@
 # FitMeet
-Hello
 
-Pierre
 
-Jacob
+landing page : https://mircoprofico.github.io/FitMeet/
