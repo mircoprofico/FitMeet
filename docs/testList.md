@@ -40,6 +40,33 @@ Aucun, je vois pas lesquelles faire
 Vérifier que les activités ne se chevauchent pas, Vérifier le bon fonctionnement du scroll (on ne scroll que sur les activités), vérifier les boutons des activités (info et rejoindre)
 
 ## Page Carte
+### Tests unitaires
+### Tests d'intégration
+### Tests manuels
+
+## Page Messagerie
+### Tests unitaires
+### Tests d'intégration
+### Tests manuels
+
+## Page Profil
+### Tests unitaires
+### Tests d'intégration
+### Tests manuels
+
+## Page Création d'évenement
+### Tests unitaires
+1. Les champs vides nécessaires empêchent de passer à la page suivante
+2. Les champs vides optionnels ne bloquent pas le passage à la page suivante (uniquement description)
+3. La date ne peut être que après le jour courant ou le jour courant lui même
+4. un seul sport possible pour une activité
+5. La page de création d'activité n'est quitté que si la base de donnée a accepté de créer l'activité 
+
+### Tests d'intégration
+1. La date et l'heure précisent un moment dans le futur, et non dans le passé. Il faut ici vérifier l'heure suivant si on est le jour J ou non
+
+### Tests manuels
+Créer des activités, de différent types, de différentes difficulté, à des temps différent. Vérifier que l'utilisateur n'ai pas la possibilité de rentrer des dates futures
 
 
 
