@@ -20,17 +20,17 @@ import ch.heigvd.fitmeet.navigation.MainGraph
 fun App() {
     MaterialTheme {
         val navController = rememberNavController()
-        val entree by navController.currentBackStackEntryAsState()
-        val destinationCourante = entree?.destination
+        val backStackEntry by navController.currentBackStackEntryAsState()
+        val currentDestination = backStackEntry?.destination
 
-        // La barre du bas n'existe qu'une fois connecte
-        val afficherBarre = destinationCourante
+        // The bottom bar only exists once signed in
+        val showBottomBar = currentDestination
             ?.hierarchy
             ?.any { it.hasRoute(MainGraph::class) } == true
 
         Scaffold(
             bottomBar = {
-                if (afficherBarre) BottomBar(navController, destinationCourante)
+                if (showBottomBar) BottomBar(navController, currentDestination)
             },
         ) { padding ->
             FitMeetNavHost(

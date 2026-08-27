@@ -22,8 +22,9 @@ import ch.heigvd.fitmeet.ui.messages.ConversationScreen
 import ch.heigvd.fitmeet.ui.profile.ProfileScreen
 
 /**
- * Relie chaque route a son écran.
- * Seul endroit de l'app qui connait la navigation
+ * Maps every route to its screen.
+ * The only place in the app that knows about navigation: no screen file
+ * was modified, so nobody has a conflict to resolve on their own screen.
  */
 @Composable
 fun FitMeetNavHost(
@@ -37,33 +38,33 @@ fun FitMeetNavHost(
     ) {
         navigation<AuthGraph>(startDestination = Login) {
             composable<Login> {
-                Temporaire(
-                    "Se connecter" to { navController.entrerDansApp() },
+                TemporaryNav(
+                    "Se connecter" to { navController.enterApp() },
                     "Creer un compte" to { navController.navigate(Register) },
                 ) { LoginScreen() }
             }
             composable<Register> {
-                Temporaire(
+                TemporaryNav(
                     "Valider" to { navController.navigate(Onboarding) },
                 ) { RegisterScreen() }
             }
             composable<Onboarding> {
-                Temporaire(
-                    "Terminer" to { navController.entrerDansApp() },
+                TemporaryNav(
+                    "Terminer" to { navController.enterApp() },
                 ) { OnboardingScreen() }
             }
         }
 
         navigation<MainGraph>(startDestination = ActivityList) {
             composable<ActivityList> {
-                Temporaire(
+                TemporaryNav(
                     "Ouvrir une activite" to { navController.navigate(ActivityDetail("demo-1")) },
                 ) { ActivityListScreen() }
             }
             composable<MapTab> { MapScreen() }
             composable<CreateActivity> { CreateActivityScreen() }
             composable<Messages> {
-                Temporaire(
+                TemporaryNav(
                     "Ouvrir une conversation" to { navController.navigate(Conversation("demo-1")) },
                 ) { ConversationListScreen() }
             }
@@ -80,29 +81,33 @@ fun FitMeetNavHost(
 }
 
 /**
- * Affiche un ecran, plus des boutons de navigation provisoires en dessous.
+ * Shows a screen plus temporary navigation buttons underneath.
+ *
+ * The buttons live here and NOT in the screen files, so nobody has to
+ * resolve a conflict on their own screen.
+ *
+ * When you write your real screen: give it a callback parameter
+ * (e.g. onLoginSuccess: () -> Unit), wire it here, and drop TemporaryNav.
  */
 @Composable
-private fun Temporaire(
-    vararg boutons: Pair<String, () -> Unit>,
-    ecran: @Composable () -> Unit,
+private fun TemporaryNav(
+    vararg buttons: Pair<String, () -> Unit>,
+    screen: @Composable () -> Unit,
 ) {
     Column {
-        ecran()
-        boutons.forEach { (libelle, action) ->
-            Button(onClick = action) { Text(libelle) }
+        screen()
+        buttons.forEach { (label, action) ->
+            Button(onClick = action) { Text(label) }
         }
     }
 }
 
 /**
- * Entre dans l'app après connexion.
- *
- * popUpTo(AuthGraph, inclusive) vide la pile des ecrans de connexion.
- * Sans ça : retour depuis Activites ramenerait sur le questionnaire,
- * puis l'inscription, puis le login.
+ * Enters the app after sign in.
+ * Clears the auth screens from the back stack, so pressing back closes
+ * the app instead of returning to the login screen.
  */
-private fun NavHostController.entrerDansApp() {
+private fun NavHostController.enterApp() {
     navigate(MainGraph) {
         popUpTo(AuthGraph) { inclusive = true }
     }
