@@ -5,8 +5,10 @@ import androidx.compose.runtime.Composable
 
 
 val activities: Array<@Composable () -> Unit> = arrayOf(
-    { ActivityType() },
-    { ActivityDateTimeDuration() }
+    { ActivityType()},
+    { ActivityDateTimeDuration()},
+    { ActivityLocation()},
+    { ActivityInfos()}
 )
 
 @Composable
