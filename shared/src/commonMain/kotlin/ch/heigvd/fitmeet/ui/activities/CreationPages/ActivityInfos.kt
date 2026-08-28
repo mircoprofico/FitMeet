@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,12 +26,18 @@ fun ActivityInfos() {
                 "Nom de l'activité",
                 style = MaterialTheme.typography.headlineLarge,
             )
+            TextField(
+                value = activityData.name,
+                    onValueChange = { activityData.name = it },
+                    label = { Text("Nom de l'activité") }
+            )
+
             Text(
                 "Description de l'activité",
                 style = MaterialTheme.typography.headlineSmall,
             )
-            Button(onClick = { currentScreen.value = 0 }) {
-                Text("Click me!")
+            Button(onClick = { currentScreen.value += 1 }) {
+                Text("Terminer la création")
             }
 
         }
