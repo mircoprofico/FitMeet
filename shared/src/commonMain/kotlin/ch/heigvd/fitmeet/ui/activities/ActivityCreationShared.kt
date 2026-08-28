@@ -5,11 +5,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 var currentScreen = mutableStateOf(0)
+val activitiesList = listOf(
+    "Foot",
+    "Basket",
+    "Volley",
+    "Tennis",
+    "Badminton",
+    "Course",
+    "Velo",
+    "Rando",
+    "Autre"
+)
 
 class ActivityData {
     var type by mutableStateOf("None")
-    var date by mutableStateOf("01.01.2026")
-    var time by mutableStateOf("00:00")
+    var date by mutableStateOf("")
+    var time by mutableStateOf("")
     var duration by mutableStateOf(15)
 
     var position by mutableStateOf("")

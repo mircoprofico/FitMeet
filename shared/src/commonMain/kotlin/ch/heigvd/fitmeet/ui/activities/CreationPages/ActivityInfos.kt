@@ -34,7 +34,7 @@ fun ActivityInfos() {
 
             Text(
                 "Description de l'activité",
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineLarge,
             )
             Button(onClick = { currentScreen.value += 1 }) {
                 Text("Terminer la création")
