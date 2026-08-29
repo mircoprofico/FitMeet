@@ -5,17 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 var currentScreen = mutableStateOf(0)
-val activitiesList = listOf(
-    "Foot",
-    "Basket",
-    "Volley",
-    "Tennis",
-    "Badminton",
-    "Course",
-    "Velo",
-    "Rando",
-    "Autre"
-)
 
 class ActivityData {
     var type by mutableStateOf("None")
