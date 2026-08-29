@@ -50,7 +50,7 @@ fun ActivityType() {
             /** New Activity title*/
             // Spacing before title
             Spacer(
-                modifier = Modifier.height(70.dp)
+                modifier = Modifier.height(60.dp)
             )
 
             // Title. This should be the same for every pages of the activity creation
@@ -62,7 +62,7 @@ fun ActivityType() {
                 fontSize = 40.sp
             )
             Spacer(
-                modifier = Modifier.height(100.dp)
+                modifier = Modifier.height(90.dp)
             )
 
             // current page title
