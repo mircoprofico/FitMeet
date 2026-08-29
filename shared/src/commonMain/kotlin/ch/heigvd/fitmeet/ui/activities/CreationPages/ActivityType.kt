@@ -84,8 +84,8 @@ fun ActivityType() {
             ){
                 items(Sport.entries){sport ->
                     Button(
-                        onClick = {activityData.type = sport.name},
-                        enabled = (activityData.type != sport.name),
+                        onClick = {activityData.type = sport.label},
+                        enabled = (activityData.type != sport.label),
                         modifier = Modifier.width(100.dp).height(120.dp).padding(5.dp),
                         shape = RoundedCornerShape(6.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -101,7 +101,7 @@ fun ActivityType() {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f)
-                                .alpha(if (activityData.type == sport.name) 1f else 0.6f),
+                                .alpha(if (activityData.type == sport.label) 1f else 0.6f),
                             contentScale = ContentScale.Fit
                         )
                     }
