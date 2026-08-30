@@ -1,46 +1,200 @@
 package ch.heigvd.fitmeet.ui.activities
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDialog
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
-
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview
 @Composable
 fun ActivityDateTimeDuration() {
-    MaterialTheme {
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+MaterialTheme {
+    var selectDate by remember { mutableStateOf(false) }
+    var selectTime by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState()
+    val timePickerState = rememberTimePickerState()
+
+    Column(
+        modifier = Modifier
+            .background(Color(0xFF102E53))
+            .safeContentPadding()
+            .fillMaxSize()
+            .padding(horizontal = 28.dp, vertical=48.dp)
+            .imePadding(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ){
+        /** New Activity title*/
+        // Spacing before title
+        Spacer(
+            modifier = Modifier.height(60.dp)
+        )
+
+        // Title. This should be the same for every pages of the activity creation
+        Text(
+            "Nouvelle Activité",
+            style = MaterialTheme.typography.headlineLarge,
+            color = Color(0xFFFFFFFF),
+            fontWeight = FontWeight.W900,
+            fontSize = 40.sp
+        )
+        Spacer(
+            modifier = Modifier.height(90.dp)
+        )
+
+        // current page title
+        Text(
+            "Quel jour?",
+            style = MaterialTheme.typography.headlineSmall,
+            color = Color(0xFFAAAAAA),
+            fontWeight = FontWeight.W500,
+            fontSize = 32.sp
+        )
+        Button(
+            onClick = {
+                selectDate = true
+            }
         ){
             Text(
-                "Cette activité a lieu (ajd/demain/le ...)",
-                style = MaterialTheme.typography.headlineSmall,
+                text = if(activityData.date == null) {
+                    "Choisir une date"
+                } else {
+                    datePickerState.selectedDateMillis.toString()
+                }
             )
-            Text(
-                "à (heure)",
-                style = MaterialTheme.typography.headlineSmall,
-            )
+        }
+        Spacer(
+            modifier = Modifier.height(20.dp)
+        )
 
-            Text(
-                "Et dure 1h",
-                style = MaterialTheme.typography.headlineSmall,
-            )
-
-
-            Button(onClick = { currentScreen.value += 1 }) {
-                Text("Click me!")
+        Text(
+            "À Quelle heure?",
+            style = MaterialTheme.typography.headlineSmall,
+            color = Color(0xFFAAAAAA),
+            fontWeight = FontWeight.W500,
+            fontSize = 32.sp
+        )
+        Button(
+            onClick = {
+                selectTime = true
             }
+        ){
+            Text(
+                text = if(activityData.time == "") {
+                    "Choisir une heure"
+                } else {
+                    activityData.time
+                }
+            )
+        }
+        Spacer(
+            modifier = Modifier.height(20.dp)
+        )
+
+
+
+
+        /** Button for next page */
+        // push the button to the bottom of the screen
+        Spacer(
+            modifier = Modifier.weight(1f)
+        )
+
+
+        // Next page Button
+        Button(onClick = { currentScreen.value += 1 },
+            enabled = activityData.date != null && activityData.time != "",
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF3E8E68),
+                disabledContainerColor = Color(0xFF888888)
+            ),
+            shape = RoundedCornerShape(6.dp),
+            modifier = Modifier.align(Alignment.End)
+        )
+        {
+            Text("Suivant",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.W600
+            )
         }
     }
+    // Selection of the date
+    if(selectDate){
+        DatePickerDialog(
+            onDismissRequest = {selectDate = false},
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        selectDate = false
+                        activityData.date = datePickerState.selectedDateMillis
+                    }
+                ){
+                    Text("Ok")
+                }
+            }
+        ){
+            DatePicker(
+                state = datePickerState
+            )
+        }
+    }
+
+    if (selectTime) {
+        TimePickerDialog(
+            onDismissRequest = {
+                selectTime = false
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        // heure sous forme XX:XX
+                        activityData.time =
+                            "${timePickerState.hour.toString().padStart(2, '0')}:" +
+                             timePickerState.minute.toString().padStart(2, '0')
+                        selectTime = false
+                    }
+                ) {
+                    Text("Ok")
+                }
+            },
+            title = {
+                Text("Choisir une heure")
+            }
+        ) {
+            TimePicker(
+                state = timePickerState
+            )
+        }
+    }
+}
 }
 
 
