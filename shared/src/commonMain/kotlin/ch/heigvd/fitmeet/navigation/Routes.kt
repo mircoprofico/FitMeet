@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 @Serializable object Login
 @Serializable object Register
 @Serializable object Onboarding
+@Serializable object OnboardingSports
 
 // --- Bottom bar tabs ---
 @Serializable object ActivityList      // Mirco

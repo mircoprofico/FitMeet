@@ -1,52 +1,69 @@
 package ch.heigvd.fitmeet
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.tooling.preview.Preview
-import org.jetbrains.compose.resources.painterResource
-
-import fitmeet.shared.generated.resources.Res
-import fitmeet.shared.generated.resources.compose_multiplatform
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import ch.heigvd.fitmeet.data.auth.AuthRepository
+import ch.heigvd.fitmeet.data.auth.PreviewAuthRepository
+import ch.heigvd.fitmeet.navigation.Login
+import ch.heigvd.fitmeet.navigation.Onboarding
+import ch.heigvd.fitmeet.navigation.OnboardingSports
+import ch.heigvd.fitmeet.navigation.Register
+import ch.heigvd.fitmeet.ui.auth.LoginScreen
+import ch.heigvd.fitmeet.ui.auth.OnboardingScreen
+import ch.heigvd.fitmeet.ui.auth.RegisterScreen
+import ch.heigvd.fitmeet.ui.onboarding.onboarding_2_sports
 
 @Composable
 @Preview
-fun App() {
+fun App(
+    authRepository: AuthRepository = PreviewAuthRepository,
+    authenticationCallbackUrl: String? = null,
+) {
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                "FitMeet - Meet people. Move together. CAFE GRATUIT G07",
-                style = MaterialTheme.typography.headlineSmall,
-            )
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+        val navController = rememberNavController()
+
+        LaunchedEffect(authenticationCallbackUrl) {
+            authenticationCallbackUrl?.let { callbackUrl ->
+                val result = authRepository.handleAuthenticationCallback(callbackUrl)
+                if (result.isSuccess) {
+                    navController.navigate(Onboarding) {
+                        popUpTo(Login) { inclusive = true }
+                    }
                 }
+            }
+        }
+
+        NavHost(
+            navController = navController,
+            startDestination = Login,
+        ) {
+            composable<Login> {
+                LoginScreen(
+                    onCreateAccount = { navController.navigate(Register) },
+                    onLogin = authRepository::signIn,
+                    onForgotPassword = authRepository::requestPasswordReset,
+                )
+            }
+
+            composable<Register> {
+                RegisterScreen(
+                    onRegister = authRepository::signUp,
+                )
+            }
+
+            composable<Onboarding> {
+                OnboardingScreen(
+                    onNext = { navController.navigate(OnboardingSports) },
+                )
+            }
+
+            composable<OnboardingSports> {
+                onboarding_2_sports()
             }
         }
     }
