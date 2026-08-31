@@ -48,7 +48,6 @@ fun ConversationScreen(
         val separationColor = Color(0xFFBBBBBB)
         val textColor = Color(0xFF102E53)
 
-
         MaterialTheme {
             Column(
                 modifier = Modifier
@@ -88,7 +87,7 @@ fun ConversationScreen(
                             Text("Retour")
                         }
                         Text(
-                            text = activityId, // todo change to name of activity
+                            text = activityId, // todo change to name of activity, get it from id
                             fontSize = 40.sp,
                             fontWeight = FontWeight.W900,
                             color = textColor,
