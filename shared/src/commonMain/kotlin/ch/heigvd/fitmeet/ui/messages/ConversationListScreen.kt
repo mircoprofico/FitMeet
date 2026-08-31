@@ -106,7 +106,7 @@ fun ConversationListScreen(
                             .background(disc.sportType.tint)
                             .clickable{
                                 navController.navigate(
-                                    Conversation(disc.groupName)//todo change with sport id
+                                    Conversation(disc.groupID)//todo change with sport id
                                 )
                             },
                         contentAlignment = Alignment.CenterStart
