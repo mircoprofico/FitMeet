@@ -4,7 +4,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -13,30 +17,74 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ch.heigvd.fitmeet.navigation.BottomBar
 import ch.heigvd.fitmeet.navigation.FitMeetNavHost
+import ch.heigvd.fitmeet.navigation.AuthGraph
+import ch.heigvd.fitmeet.navigation.Login
 import ch.heigvd.fitmeet.navigation.MainGraph
+import ch.heigvd.fitmeet.navigation.Onboarding
+import ch.heigvd.fitmeet.data.auth.AuthRepository
+import ch.heigvd.fitmeet.data.auth.PreviewAuthRepository
+import ch.heigvd.fitmeet.data.profile.OnboardingState
+import ch.heigvd.fitmeet.data.profile.PreviewProfileRepository
+import ch.heigvd.fitmeet.data.profile.ProfileRepository
 
 @Composable
 @Preview
-fun App() {
-    MaterialTheme {
-        val navController = rememberNavController()
-        val backStackEntry by navController.currentBackStackEntryAsState()
-        val currentDestination = backStackEntry?.destination
+fun App(
+    authRepository: AuthRepository = PreviewAuthRepository,
+    profileRepository: ProfileRepository = PreviewProfileRepository,
+    authenticationCallbackUrl: String? = null,
+) {
+      MaterialTheme {
+      val navController = rememberNavController()
+      var onboardingState by remember { mutableStateOf(OnboardingState()) }
 
-        // The bottom bar only exists once signed in
-        val showBottomBar = currentDestination
-            ?.hierarchy
-            ?.any { it.hasRoute(MainGraph::class) } == true
+      LaunchedEffect(authRepository, profileRepository, authenticationCallbackUrl) {
+          val state = if (authenticationCallbackUrl != null) {
+              val result = authRepository.handleAuthenticationCallback(authenticationCallbackUrl)
+              if (!result.isSuccess) null else profileRepository.getOnboardingState()
+          } else {
+              val restored = authRepository.restoreSession()
+              if (restored.isAuthenticated) profileRepository.getOnboardingState() else null
+          }
 
-        Scaffold(
-            bottomBar = {
-                if (showBottomBar) BottomBar(navController, currentDestination)
-            },
-        ) { padding ->
-            FitMeetNavHost(
-                navController = navController,
-                modifier = Modifier.padding(padding),
-            )
-        }
-    }
+          state?.let {
+              onboardingState = it
+              if (it.complete) {
+                  navController.navigate(MainGraph) {
+                      popUpTo(AuthGraph) { inclusive = true }
+                      launchSingleTop = true
+                  }
+              } else {
+                  navController.navigate(Onboarding) {
+                      popUpTo(Login) { inclusive = true }
+                      launchSingleTop = true
+                  }
+              }
+          }
+      }
+
+      val backStackEntry by navController.currentBackStackEntryAsState()
+      val currentDestination = backStackEntry?.destination
+
+      Scaffold(
+          bottomBar = {
+              if (currentDestination?.hierarchy?.any {
+                  it.hasRoute(MainGraph::class)
+              } == true) {
+                  BottomBar(navController, currentDestination)
+              }
+          },
+      ) { padding ->
+          // Un seul NavHost ici :
+          // il doit contenir AuthGraph ET MainGraph.
+          FitMeetNavHost(
+              navController = navController,
+              modifier = Modifier.padding(padding),
+              authRepository = authRepository,
+              profileRepository = profileRepository,
+              onboardingState = onboardingState,
+              onOnboardingStateChanged = { onboardingState = it },
+          )
+      }
+  }
 }
