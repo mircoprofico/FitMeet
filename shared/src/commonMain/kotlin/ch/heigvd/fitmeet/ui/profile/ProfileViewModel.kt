@@ -11,6 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 class ProfileViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Success(mockProfile))
     val uiState: StateFlow<ProfileUiState> = _uiState
+
+    fun updateProfile(updatedProfile: UserProfile) {
+        _uiState.value = ProfileUiState.Success(updatedProfile)
+    }
 }
 
 sealed class ProfileUiState {

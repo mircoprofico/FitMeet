@@ -45,34 +45,45 @@ private val ColorTextBody = Color(0xFF444444)
 private val ColorCardBackground = Color(0xFFF5F5F5)
 
 @Composable
-fun ProfileScreen(viewModel: ProfileViewModel = viewModel()) {
+fun ProfileScreen(
+    viewModel: ProfileViewModel = viewModel(),
+    onEditProfile: () -> Unit = {},
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     when (val state = uiState) {
         is ProfileUiState.Loading -> Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) { CircularProgressIndicator(color = ColorPrimary) }
-        is ProfileUiState.Success -> ProfileContent(profile = state.profile)
+        is ProfileUiState.Success -> ProfileContent(profile = state.profile, onEditProfile = onEditProfile)
     }
 }
 
 @Composable
-private fun ProfileContent(profile: UserProfile) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-    ) {
-        Spacer(Modifier.height(32.dp))
-        ProfileHeader(profile)
-        HorizontalDivider()
-        SportsSection(profile.sports)
-        HorizontalDivider()
-        StatsSection(profile.activitiesCreated, profile.activitiesJoined)
-        SignOutButton()
-        Spacer(Modifier.height(16.dp))
+private fun ProfileContent(profile: UserProfile, onEditProfile: () -> Unit = {}) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+        ) {
+            Spacer(Modifier.height(32.dp))
+            ProfileHeader(profile)
+            HorizontalDivider()
+            SportsSection(profile.sports)
+            HorizontalDivider()
+            StatsSection(profile.activitiesCreated, profile.activitiesJoined)
+            SignOutButton()
+            Spacer(Modifier.height(16.dp))
+        }
+        androidx.compose.material3.TextButton(
+            onClick = onEditProfile,
+            modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
+        ) {
+            Text("✏️ Modifier", color = ColorPrimary, fontSize = 13.sp)
+        }
     }
 }
 
