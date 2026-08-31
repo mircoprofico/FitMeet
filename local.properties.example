@@ -1,0 +1,4 @@
+# Copy these lines into the ignored local.properties file.
+# Get the values from Supabase Dashboard > Connect, or ask a project maintainer.
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key_here
