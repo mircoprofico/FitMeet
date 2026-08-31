@@ -6,7 +6,7 @@ name: CI/CD
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, staging]
   # personne ne peut push sur main, donc si un commit y arrive
   # c'est qu'une PR vient d'être merge
   push:
