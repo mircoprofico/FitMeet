@@ -44,8 +44,12 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.maplibre.android.sdk)
         }
         commonMain.dependencies {
+            implementation(libs.supabase.auth)
+            implementation(libs.supabase.postgrest)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -56,6 +60,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
