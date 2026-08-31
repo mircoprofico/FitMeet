@@ -52,8 +52,7 @@ fun App(
               }
           },
       ) { padding ->
-          // Un seul NavHost ici :
-          // il doit contenir AuthGraph ET MainGraph.
+          // only one NavHost here, it holds both AuthGraph and MainGraph
           FitMeetNavHost(
               navController = navController,
               modifier = Modifier.padding(padding),
