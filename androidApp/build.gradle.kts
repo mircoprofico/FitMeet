@@ -29,6 +29,16 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        buildConfigField(
+            "String",
+            "SUPABASE_URL",
+            "\"https://ipsfwwukipljtmzthzdv.supabase.co\"",
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_PUBLISHABLE_KEY",
+            "\"sb_publishable_k1-vr5-QcPqZVRG57s4OKQ_bTnB9iqI\"",
+        )
     }
     packaging {
         resources {
@@ -47,8 +57,14 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
+}
+
+dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
+import ch.heigvd.fitmeet.data.auth.AuthRepository
 import ch.heigvd.fitmeet.ui.activities.ActivityDetailScreen
 import ch.heigvd.fitmeet.ui.activities.ActivityListScreen
 import ch.heigvd.fitmeet.ui.activities.CreateActivityScreen
@@ -23,6 +24,7 @@ import ch.heigvd.fitmeet.ui.messages.ConversationListScreen
 import ch.heigvd.fitmeet.ui.messages.ConversationScreen
 import ch.heigvd.fitmeet.ui.profile.EditProfileScreen
 import ch.heigvd.fitmeet.ui.profile.ProfileScreen
+import ch.heigvd.fitmeet.ui.onboarding.onboarding_2_sports
 import ch.heigvd.fitmeet.ui.profile.ProfileViewModel
 
 /**
@@ -33,6 +35,7 @@ import ch.heigvd.fitmeet.ui.profile.ProfileViewModel
 @Composable
 fun FitMeetNavHost(
     navController: NavHostController,
+    authRepository: AuthRepository,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -42,20 +45,24 @@ fun FitMeetNavHost(
     ) {
         navigation<AuthGraph>(startDestination = Login) {
             composable<Login> {
-                TemporaryNav(
-                    "Se connecter" to { navController.enterApp() },
-                    "Creer un compte" to { navController.navigate(Register) },
-                ) { LoginScreen() }
+                LoginScreen(
+                    onCreateAccount = { navController.navigate(Register) },
+                    onLogin = { email, password ->
+                        authRepository.signIn(email, password).also { result ->
+                            if (result.isSuccess) navController.enterApp()
+                        }
+                    },
+                    onForgotPassword = authRepository::requestPasswordReset,
+                )
             }
             composable<Register> {
-                TemporaryNav(
-                    "Valider" to { navController.navigate(Onboarding) },
-                ) { RegisterScreen() }
+                RegisterScreen(onRegister = authRepository::signUp)
             }
             composable<Onboarding> {
-                TemporaryNav(
-                    "Terminer" to { navController.enterApp() },
-                ) { OnboardingScreen() }
+                OnboardingScreen(onNext = { navController.navigate(OnboardingSports) })
+            }
+            composable<OnboardingSports> {
+                onboarding_2_sports(onFinish = { navController.enterApp() })
             }
         }
 
