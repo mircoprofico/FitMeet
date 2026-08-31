@@ -30,6 +30,8 @@ import ch.heigvd.fitmeet.ui.theme.Level
 import ch.heigvd.fitmeet.ui.theme.Sport
 import org.jetbrains.compose.resources.painterResource
 
+// the card used in the list, the detail sheet and the profile.
+// everything comes from parameters, it does not know where the data comes from.
 @Composable
 fun ActivityCard(
     title: String,
@@ -45,7 +47,7 @@ fun ActivityCard(
 ) {
     Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Row(modifier = Modifier.height(88.dp)) {
-            // Zone Gauche : l'icone du sport sur son fond teinte
+            // left: sport icon on its tinted square
             Box(
                 modifier = Modifier
                     .size(88.dp)
@@ -54,12 +56,12 @@ fun ActivityCard(
             ) {
                 Image(
                     painter = painterResource(sport.icon),
-                    contentDescription = sport.label,
+                        contentDescription = sport.label, // no text says the sport, so it needs a description
                     modifier = Modifier.size(46.dp),
                 )
             }
 
-            // Zone Centrale : prend le reste de la taille
+            // middle: takes whatever width is left over
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -71,20 +73,20 @@ fun ActivityCard(
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis, // long titles would break the layout otherwise
                 )
                 Text(dateTime, fontSize = 12.sp)
                 Text(place, fontSize = 12.sp)
                 LevelChip(level, Modifier.padding(top = 12.dp))
             }
 
-            // Zone Droite : compteur en haut, actions en bas
+            // right: counter on top, buttons at the bottom
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
                     .padding(end = 10.dp, top = 8.dp, bottom = 8.dp),
                 horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.SpaceBetween,
+                verticalArrangement = Arrangement.SpaceBetween, // needs fillMaxHeight above to work
             ) {
                 Text(
                     text = "$participants/$capacity",
@@ -93,8 +95,9 @@ fun ActivityCard(
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Button(
-                        onClick = {},
+                        onClick = {}, // TODO: open the detail sheet
                         modifier = Modifier.height(30.dp),
+                        // m3 buttons are 40dp min, too tall here, so we shrink the padding too
                         contentPadding = PaddingValues(horizontal = 10.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFB9C2BC),
