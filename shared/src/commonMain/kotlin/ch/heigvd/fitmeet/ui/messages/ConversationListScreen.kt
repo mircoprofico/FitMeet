@@ -29,6 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import ch.heigvd.fitmeet.navigation.Conversation
 import ch.heigvd.fitmeet.ui.theme.Sport
 
 
@@ -39,18 +41,20 @@ private data class groupInfo(
     val groupID : String = "-1"
 )
 
-@Preview
+private val discussions_temp = mutableStateListOf<groupInfo>(
+    groupInfo("Foot en 5v5", Sport.FOOTBALL),
+    groupInfo("Tour du lac", Sport.RUNNING),
+    groupInfo("match chill", Sport.BASKETBALL)
+)
+
 @Composable
-fun ConversationListScreen() {
+fun ConversationListScreen(
+    navController: NavHostController
+) {
     val backgroundColor = Color(0xFFDDDDDD)
     val separationColor = Color(0xFFBBBBBB)
     val textColor = Color(0xFF102E53)
 
-    val discussions_temp = mutableStateListOf<groupInfo>(
-        groupInfo("Foot en 5v5", Sport.FOOTBALL),
-        groupInfo("Tour du lac", Sport.RUNNING),
-        groupInfo("match chill", Sport.BASKETBALL)
-    )
 
     MaterialTheme {
         Column(
@@ -80,8 +84,8 @@ fun ConversationListScreen() {
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text(
-                    text = "Messagerie",
-                    fontSize = 35.sp,
+                    text = "Discussions",
+                    fontSize = 40.sp,
                     fontWeight = FontWeight.W900,
                     color = textColor,
                     modifier = Modifier.padding(10.dp, 0.dp)
@@ -101,14 +105,17 @@ fun ConversationListScreen() {
                             .padding(horizontal = 10.dp, vertical = 5.dp)
                             .background(disc.sportType.tint)
                             .clickable{
-                                // TODO open corresponding discussion
+                                navController.navigate(
+                                    Conversation(disc.groupName)//todo change with sport id
+                                )
                             },
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Text(
                             text = disc.groupName,
                             modifier = Modifier.padding(start = 15.dp),
-                            fontSize = 20.sp
+                            fontSize = 30.sp,
+                            fontWeight = FontWeight.Black
                         )
                     }
                 }
