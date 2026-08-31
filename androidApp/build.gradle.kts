@@ -1,10 +1,4 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.util.Properties
-
-val localProperties = Properties().apply {
-    val file = rootProject.file("local.properties")
-    if (file.exists()) file.inputStream().use(::load)
-}
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -35,11 +29,15 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
-        buildConfigField("String", "SUPABASE_URL", "\"${localProperties.getProperty("SUPABASE_URL", "")}\"")
+        buildConfigField(
+            "String",
+            "SUPABASE_URL",
+            "\"https://ipsfwwukipljtmzthzdv.supabase.co\"",
+        )
         buildConfigField(
             "String",
             "SUPABASE_PUBLISHABLE_KEY",
-            "\"${localProperties.getProperty("SUPABASE_PUBLISHABLE_KEY", "")}\"",
+            "\"sb_publishable_k1-vr5-QcPqZVRG57s4OKQ_bTnB9iqI\"",
         )
     }
     packaging {
