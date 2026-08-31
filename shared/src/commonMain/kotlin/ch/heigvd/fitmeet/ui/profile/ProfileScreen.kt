@@ -23,6 +23,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import ch.heigvd.fitmeet.data.auth.AuthActionResult
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,19 +54,33 @@ private val ColorCardBackground = Color(0xFFF5F5F5)
 fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel(),
     onEditProfile: () -> Unit = {},
+    onLogout: suspend () -> AuthActionResult = { AuthActionResult(true, "Aperçu") },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var logoutMessage by remember { mutableStateOf<AuthActionResult?>(null) }
+    val scope = rememberCoroutineScope()
+
     when (val state = uiState) {
         is ProfileUiState.Loading -> Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) { CircularProgressIndicator(color = ColorPrimary) }
-        is ProfileUiState.Success -> ProfileContent(profile = state.profile, onEditProfile = onEditProfile)
+        is ProfileUiState.Success -> ProfileContent(
+            profile = state.profile,
+            onEditProfile = onEditProfile,
+            onLogout = { scope.launch { logoutMessage = onLogout() } },
+            logoutMessage = logoutMessage,
+        )
     }
 }
 
 @Composable
-private fun ProfileContent(profile: UserProfile, onEditProfile: () -> Unit = {}) {
+private fun ProfileContent(
+    profile: UserProfile,
+    onEditProfile: () -> Unit = {},
+    onLogout: () -> Unit = {},
+    logoutMessage: AuthActionResult? = null,
+) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -75,7 +95,8 @@ private fun ProfileContent(profile: UserProfile, onEditProfile: () -> Unit = {})
             SportsSection(profile.sports)
             HorizontalDivider()
             StatsSection(profile.activitiesCreated, profile.activitiesJoined)
-            SignOutButton()
+            SignOutButton(onClick = onLogout)
+            logoutMessage?.let { Text(it.message, color = ColorDanger) }
             Spacer(Modifier.height(16.dp))
         }
         androidx.compose.material3.TextButton(
@@ -189,9 +210,9 @@ private fun StatCard(label: String, value: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SignOutButton() {
+private fun SignOutButton(onClick: () -> Unit = {}) {
     OutlinedButton(
-        onClick = {},
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = ColorDanger),
         border = BorderStroke(1.dp, ColorDanger),

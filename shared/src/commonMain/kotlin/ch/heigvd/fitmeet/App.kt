@@ -6,6 +6,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -14,27 +17,47 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import ch.heigvd.fitmeet.navigation.BottomBar
 import ch.heigvd.fitmeet.navigation.FitMeetNavHost
+import ch.heigvd.fitmeet.navigation.AuthGraph
 import ch.heigvd.fitmeet.navigation.Login
 import ch.heigvd.fitmeet.navigation.MainGraph
 import ch.heigvd.fitmeet.navigation.Onboarding
 import ch.heigvd.fitmeet.data.auth.AuthRepository
 import ch.heigvd.fitmeet.data.auth.PreviewAuthRepository
+import ch.heigvd.fitmeet.data.profile.OnboardingState
+import ch.heigvd.fitmeet.data.profile.PreviewProfileRepository
+import ch.heigvd.fitmeet.data.profile.ProfileRepository
 
 @Composable
 @Preview
 fun App(
     authRepository: AuthRepository = PreviewAuthRepository,
+    profileRepository: ProfileRepository = PreviewProfileRepository,
     authenticationCallbackUrl: String? = null,
 ) {
-     MaterialTheme {
+      MaterialTheme {
       val navController = rememberNavController()
+      var onboardingState by remember { mutableStateOf(OnboardingState()) }
 
-      LaunchedEffect(authenticationCallbackUrl) {
-          authenticationCallbackUrl?.let { url ->
-              val result = authRepository.handleAuthenticationCallback(url)
-              if (result.isSuccess) {
+      LaunchedEffect(authRepository, profileRepository, authenticationCallbackUrl) {
+          val state = if (authenticationCallbackUrl != null) {
+              val result = authRepository.handleAuthenticationCallback(authenticationCallbackUrl)
+              if (!result.isSuccess) null else profileRepository.getOnboardingState()
+          } else {
+              val restored = authRepository.restoreSession()
+              if (restored.isAuthenticated) profileRepository.getOnboardingState() else null
+          }
+
+          state?.let {
+              onboardingState = it
+              if (it.complete) {
+                  navController.navigate(MainGraph) {
+                      popUpTo(AuthGraph) { inclusive = true }
+                      launchSingleTop = true
+                  }
+              } else {
                   navController.navigate(Onboarding) {
                       popUpTo(Login) { inclusive = true }
+                      launchSingleTop = true
                   }
               }
           }
@@ -58,6 +81,9 @@ fun App(
               navController = navController,
               modifier = Modifier.padding(padding),
               authRepository = authRepository,
+              profileRepository = profileRepository,
+              onboardingState = onboardingState,
+              onOnboardingStateChanged = { onboardingState = it },
           )
       }
   }
