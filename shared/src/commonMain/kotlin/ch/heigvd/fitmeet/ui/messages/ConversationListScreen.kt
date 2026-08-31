@@ -34,7 +34,8 @@ import ch.heigvd.fitmeet.navigation.Conversation
 import ch.heigvd.fitmeet.ui.theme.Sport
 
 
-//TODO Connect with supabase get
+//TODO replace this with the getting of supabase. You should get only the user-accessible discussions.
+// Modify groupInfo as wanted, it was just for testing
 private data class groupInfo(
     val groupName: String = "",
     val sportType: Sport = Sport.FOOTBALL,
