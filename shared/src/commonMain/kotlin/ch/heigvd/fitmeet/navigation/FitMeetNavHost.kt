@@ -15,6 +15,7 @@ import androidx.navigation.toRoute
 import ch.heigvd.fitmeet.data.auth.AuthRepository
 import ch.heigvd.fitmeet.data.profile.OnboardingState
 import ch.heigvd.fitmeet.data.profile.ProfileRepository
+import ch.heigvd.fitmeet.data.messages.ConversationRepository
 import ch.heigvd.fitmeet.ui.activities.ActivityDetailScreen
 import ch.heigvd.fitmeet.ui.activities.ActivityListScreen
 import ch.heigvd.fitmeet.ui.activities.CreateActivityScreen
@@ -39,6 +40,7 @@ fun FitMeetNavHost(
     navController: NavHostController,
     authRepository: AuthRepository,
     profileRepository: ProfileRepository,
+    conversationRepository: ConversationRepository,
     onboardingState: OnboardingState = OnboardingState(),
     onOnboardingStateChanged: (OnboardingState) -> Unit = {},
     modifier: Modifier = Modifier,
@@ -105,9 +107,12 @@ fun FitMeetNavHost(
             composable<Messages> {
                 TemporaryNav(
                     "Ouvrir une conversation" to { navController.navigate(Conversation("demo-1")) },
-                ) { ConversationListScreen(
-                    navController = navController
-                ) }
+                ) {
+                    ConversationListScreen(
+                        navController = navController,
+                        conversationRepository = conversationRepository,
+                    )
+                }
             }
             composable<Profile> { entry ->
                 val parentEntry = remember(entry) { navController.getBackStackEntry<MainGraph>() }
@@ -136,8 +141,9 @@ fun FitMeetNavHost(
             }
             composable<Conversation> { entry ->
                 ConversationScreen(
-                    activityId = entry.toRoute<Conversation>().activityId,
-                    navController = navController
+                    conversationId = entry.toRoute<Conversation>().conversationId,
+                    navController = navController,
+                    conversationRepository = conversationRepository,
                 )
             }
         }

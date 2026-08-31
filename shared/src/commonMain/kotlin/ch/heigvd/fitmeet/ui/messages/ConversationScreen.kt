@@ -1,7 +1,6 @@
 package ch.heigvd.fitmeet.ui.messages
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,131 +16,128 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import ch.heigvd.fitmeet.navigation.Conversation
-
-
-// TODO change this with db pulls
-data class message(val userID : Int, val text : String)
-val disc = listOf<message>(
-    message(0, "Salut à tous! on est ready pour ce match?"),
-    message(1, "Oui! je suis trop content!")
-)
-
-val selfId = 0 // Todo set to user id
+import ch.heigvd.fitmeet.data.messages.ConversationMessage
+import ch.heigvd.fitmeet.data.messages.ConversationRepository
 
 @Composable
 fun ConversationScreen(
-    activityId: String = "",
-    navController : NavHostController
+    conversationId: String = "",
+    navController: NavHostController,
+    conversationRepository: ConversationRepository,
 ) {
-        val backgroundColor = Color(0xFFDDDDDD)
-        val separationColor = Color(0xFFBBBBBB)
-        val textColor = Color(0xFF102E53)
+    var messages by remember { mutableStateOf<List<ConversationMessage>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val currentUserId = conversationRepository.currentUserId()
 
-        MaterialTheme {
-            Column(
+    LaunchedEffect(conversationRepository, conversationId) {
+        conversationRepository.getMessages(conversationId)
+            .onSuccess {
+                messages = it
+                errorMessage = null
+            }
+            .onFailure {
+                errorMessage = it.message ?: "Impossible de charger les messages."
+            }
+        isLoading = false
+    }
+
+    val backgroundColor = Color(0xFFDDDDDD)
+    val separationColor = Color(0xFFBBBBBB)
+    val textColor = Color(0xFF102E53)
+
+    MaterialTheme {
+        Column(
+            modifier = Modifier
+                .background(backgroundColor)
+                .safeContentPadding()
+                .fillMaxSize()
+                .imePadding(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
                 modifier = Modifier
-                    .background(backgroundColor)
-                    .safeContentPadding()
-                    .fillMaxSize()
-                    .imePadding(),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .drawBehind {
+                        drawLine(
+                            color = separationColor,
+                            start = Offset(0f, size.height),
+                            end = Offset(size.width, size.height),
+                            strokeWidth = 5.dp.toPx(),
+                        )
+                    },
+                contentAlignment = Alignment.CenterStart,
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
-                        .background(
-                            color = backgroundColor,
-                        )
-                        .drawBehind {
-                            drawLine(
-                                color = separationColor,
-                                start = Offset(0f, size.height),
-                                end = Offset(size.width, size.height),
-                                strokeWidth = 5.dp.toPx()
-                            )
-                        },
-
-                    contentAlignment = Alignment.CenterStart
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(10.dp, 0.dp),
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(10.dp, 0.dp)
-                    ){
-                        Button(
-                            onClick = {
-                                navController.popBackStack()
-                            }
-                        ) {
-                            Text("Retour")
-                        }
-                        Text(
-                            text = activityId, // todo change to name of activity, get it from id
-                            fontSize = 40.sp,
-                            fontWeight = FontWeight.W900,
-                            color = textColor,
-                            modifier = Modifier.padding(10.dp, 0.dp)
-                        )
+                    Button(onClick = { navController.popBackStack() }) {
+                        Text("Retour")
                     }
+                    Text(
+                        text = "Conversation",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.W900,
+                        color = textColor,
+                        modifier = Modifier.padding(10.dp, 0.dp),
+                    )
                 }
+            }
 
-                LazyColumn(
+            when {
+                isLoading -> Text("Chargement des messages...", modifier = Modifier.padding(24.dp))
+                errorMessage != null -> Text(
+                    text = errorMessage.orEmpty(),
+                    modifier = Modifier.padding(24.dp),
+                    color = MaterialTheme.colorScheme.error,
+                )
+                messages.isEmpty() -> Text("Aucun message.", modifier = Modifier.padding(24.dp))
+                else -> LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f)
+                        .weight(1f),
                 ) {
-                    items(disc) { disc ->
+                    items(messages, key = { it.id }) { message ->
+                        val isMine = message.senderId == currentUserId
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(
-                                    start = if (disc.userID == selfId) 60.dp else 10.dp,
-                                    end = if (disc.userID == selfId) 10.dp else 60.dp,
+                                    start = if (isMine) 60.dp else 10.dp,
+                                    end = if (isMine) 10.dp else 60.dp,
                                     top = 5.dp,
-                                    bottom = 5.dp
+                                    bottom = 5.dp,
                                 ),
-                            contentAlignment = if (disc.userID == 0) {
-                                Alignment.CenterEnd
-                            } else {
-                                Alignment.CenterStart
-                            }
+                            contentAlignment = if (isMine) Alignment.CenterEnd else Alignment.CenterStart,
                         ) {
                             Box(
                                 modifier = Modifier
                                     .background(
-                                        color = if (disc.userID == 0) {
-                                            Color(0xFF2196F3)
-                                        } else {
-                                            Color.White
-                                        },
-                                        shape = MaterialTheme.shapes.large
+                                        color = if (isMine) Color(0xFF2196F3) else Color.White,
+                                        shape = MaterialTheme.shapes.large,
                                     )
-                                    .padding(
-                                        horizontal = 16.dp,
-                                        vertical = 10.dp
-                                    ),
-                                contentAlignment = Alignment.Center
+                                    .padding(horizontal = 16.dp, vertical = 10.dp),
                             ) {
                                 Text(
-                                    text = disc.text,
-                                    color = if (disc.userID == 0) {
-                                        Color.White
-                                    } else {
-                                        Color.Black
-                                    },
+                                    text = message.content,
+                                    color = if (isMine) Color.White else Color.Black,
                                     fontSize = 20.sp,
-                                    fontWeight = FontWeight.Normal
                                 )
                             }
                         }
@@ -149,5 +145,5 @@ fun ConversationScreen(
                 }
             }
         }
+    }
 }
-

@@ -23,6 +23,8 @@ import ch.heigvd.fitmeet.navigation.MainGraph
 import ch.heigvd.fitmeet.navigation.Onboarding
 import ch.heigvd.fitmeet.data.auth.AuthRepository
 import ch.heigvd.fitmeet.data.auth.PreviewAuthRepository
+import ch.heigvd.fitmeet.data.messages.ConversationRepository
+import ch.heigvd.fitmeet.data.messages.PreviewConversationRepository
 import ch.heigvd.fitmeet.data.profile.OnboardingState
 import ch.heigvd.fitmeet.data.profile.PreviewProfileRepository
 import ch.heigvd.fitmeet.data.profile.ProfileRepository
@@ -32,6 +34,7 @@ import ch.heigvd.fitmeet.data.profile.ProfileRepository
 fun App(
     authRepository: AuthRepository = PreviewAuthRepository,
     profileRepository: ProfileRepository = PreviewProfileRepository,
+    conversationRepository: ConversationRepository = PreviewConversationRepository,
     authenticationCallbackUrl: String? = null,
 ) {
       MaterialTheme {
@@ -82,6 +85,7 @@ fun App(
               modifier = Modifier.padding(padding),
               authRepository = authRepository,
               profileRepository = profileRepository,
+              conversationRepository = conversationRepository,
               onboardingState = onboardingState,
               onOnboardingStateChanged = { onboardingState = it },
           )

@@ -15,8 +15,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -26,36 +26,37 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import ch.heigvd.fitmeet.data.messages.ConversationRepository
+import ch.heigvd.fitmeet.data.messages.ConversationSummary
 import ch.heigvd.fitmeet.navigation.Conversation
-import ch.heigvd.fitmeet.ui.theme.Sport
-
-
-//TODO replace this with the getting of supabase. You should get only the user-accessible discussions.
-// Modify groupInfo as wanted, it was just for testing
-private data class groupInfo(
-    val groupName: String = "",
-    val sportType: Sport = Sport.FOOTBALL,
-    val groupID : String = "-1"
-)
-
-private val discussions_temp = mutableStateListOf<groupInfo>(
-    groupInfo("Foot en 5v5", Sport.FOOTBALL),
-    groupInfo("Tour du lac", Sport.RUNNING),
-    groupInfo("match chill", Sport.BASKETBALL)
-)
 
 @Composable
 fun ConversationListScreen(
-    navController: NavHostController
+    navController: NavHostController,
+    conversationRepository: ConversationRepository,
 ) {
+    var conversations by remember { mutableStateOf<List<ConversationSummary>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(conversationRepository) {
+        conversationRepository.getAccessibleConversations()
+            .onSuccess {
+                conversations = it
+                errorMessage = null
+            }
+            .onFailure {
+                errorMessage = it.message ?: "Impossible de charger les conversations."
+            }
+        isLoading = false
+    }
+
     val backgroundColor = Color(0xFFDDDDDD)
     val separationColor = Color(0xFFBBBBBB)
     val textColor = Color(0xFF102E53)
-
 
     MaterialTheme {
         Column(
@@ -70,54 +71,63 @@ fun ConversationListScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
-                    .background(
-                        color = backgroundColor,
-                    )
                     .drawBehind {
                         drawLine(
                             color = separationColor,
                             start = Offset(0f, size.height),
                             end = Offset(size.width, size.height),
-                            strokeWidth = 5.dp.toPx()
+                            strokeWidth = 5.dp.toPx(),
                         )
                     },
-
-                contentAlignment = Alignment.CenterStart
+                contentAlignment = Alignment.CenterStart,
             ) {
                 Text(
                     text = "Discussions",
                     fontSize = 40.sp,
                     fontWeight = FontWeight.W900,
                     color = textColor,
-                    modifier = Modifier.padding(10.dp, 0.dp)
+                    modifier = Modifier.padding(10.dp, 0.dp),
                 )
             }
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) {
-                items(discussions_temp) { disc ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp)
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
-                            .background(disc.sportType.tint)
-                            .clickable{
-                                navController.navigate(
-                                    Conversation(disc.groupID)//todo change with sport id
+            when {
+                isLoading -> Text("Chargement des conversations...", modifier = Modifier.padding(24.dp))
+                errorMessage != null -> Text(
+                    text = errorMessage.orEmpty(),
+                    modifier = Modifier.padding(24.dp),
+                    color = MaterialTheme.colorScheme.error,
+                )
+                conversations.isEmpty() -> Text("Aucune conversation disponible.", modifier = Modifier.padding(24.dp))
+                else -> LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                ) {
+                    items(conversations, key = { it.conversationId }) { conversation ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp)
+                                .padding(horizontal = 10.dp, vertical = 5.dp)
+                                .background(Color(0xFFB8D8E8))
+                                .clickable {
+                                    navController.navigate(Conversation(conversation.conversationId))
+                                },
+                            contentAlignment = Alignment.CenterStart,
+                        ) {
+                            Column(modifier = Modifier.padding(start = 15.dp)) {
+                                Text(
+                                    text = conversation.title,
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Black,
                                 )
-                            },
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Text(
-                            text = disc.groupName,
-                            modifier = Modifier.padding(start = 15.dp),
-                            fontSize = 30.sp,
-                            fontWeight = FontWeight.Black
-                        )
+                                Text(
+                                    text = conversation.locationName,
+                                    fontSize = 14.sp,
+                                    color = textColor,
+                                )
+                            }
+                        }
                     }
                 }
             }
