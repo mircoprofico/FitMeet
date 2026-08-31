@@ -44,6 +44,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
+            implementation(libs.maplibre.android.sdk)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
