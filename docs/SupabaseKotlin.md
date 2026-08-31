@@ -32,6 +32,25 @@ val sports = supabase
     .decodeList<SportDto>()
 ```
 
+Lister les activités rejointes avec leur conversation :
+
+```kotlin
+@Serializable
+data class ActivityConversationDto(
+    val conversation_id: String,
+    val event_id: String,
+    val title: String,
+    val starts_at: String,
+    val is_organizer: Boolean,
+    val last_message_at: String? = null,
+)
+
+val conversations = supabase
+    .postgrest
+    .rpc("my_event_conversations")
+    .decodeList<ActivityConversationDto>()
+```
+
 Lire une ligne avec un filtre :
 
 ```kotlin
