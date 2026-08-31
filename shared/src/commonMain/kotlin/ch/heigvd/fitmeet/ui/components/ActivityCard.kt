@@ -125,7 +125,7 @@ fun ActivityCard(
 private fun ActivityCardPreview() {
     ActivityCard(
         title = "Match de Foot",
-        sport = Sport.VOLLEYBALL,
+        sport = Sport.FOOTBALL,
         dateTime = "Aujourd'hui - 14h30",
         place = "Morges, FC Forward",
         level = Level.ADVANCED,
