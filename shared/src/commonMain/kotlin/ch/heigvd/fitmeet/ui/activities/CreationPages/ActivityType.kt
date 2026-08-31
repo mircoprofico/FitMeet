@@ -61,10 +61,7 @@ fun ActivityType() {
                 fontWeight = FontWeight.W900,
                 fontSize = 40.sp
             )
-            Spacer(
-                modifier = Modifier.height(90.dp)
-            )
-
+            Spacer(modifier = Modifier.height(90.dp))
             // current page title
             Text(
                 "Quel type d'activité\nvoulez vous créer?",
@@ -73,15 +70,14 @@ fun ActivityType() {
                 fontWeight = FontWeight.W500,
                 fontSize = 32.sp
             )
-            Spacer(
-                modifier = Modifier.height(20.dp)
-            )
 
+            Spacer(modifier = Modifier.height(20.dp))
             /** Activities */
 
             LazyVerticalGrid(
-                columns = GridCells.Fixed(3) // show activities on 3 columns
-            ){
+                columns = GridCells.Fixed(3) , // show activities on 3 columns
+                modifier = Modifier.fillMaxWidth().weight(1f)
+                ){
                 items(Sport.entries){sport ->
                     Button(
                         onClick = {activityData.type = sport.label},
@@ -107,13 +103,6 @@ fun ActivityType() {
                     }
                 }
             }
-
-            /** Button for next page */
-            // push the button to the bottom of the screen
-            Spacer(
-                modifier = Modifier.weight(1f)
-            )
-
 
             // Next page Button
             Button(onClick = { currentScreen.value += 1 },
