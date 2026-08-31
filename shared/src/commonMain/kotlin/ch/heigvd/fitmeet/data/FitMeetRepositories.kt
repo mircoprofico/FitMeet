@@ -3,6 +3,9 @@ package ch.heigvd.fitmeet.data
 import ch.heigvd.fitmeet.data.auth.AuthRepository
 import ch.heigvd.fitmeet.data.auth.SupabaseAuthRepository
 import ch.heigvd.fitmeet.data.auth.UnconfiguredAuthRepository
+import ch.heigvd.fitmeet.data.messages.ConversationRepository
+import ch.heigvd.fitmeet.data.messages.SupabaseConversationRepository
+import ch.heigvd.fitmeet.data.messages.UnconfiguredConversationRepository
 import ch.heigvd.fitmeet.data.profile.ProfileRepository
 import ch.heigvd.fitmeet.data.profile.SupabaseProfileRepository
 import ch.heigvd.fitmeet.data.profile.UnconfiguredProfileRepository
@@ -11,6 +14,7 @@ import ch.heigvd.fitmeet.data.supabase.createFitMeetSupabaseClient
 data class FitMeetRepositories(
     val authRepository: AuthRepository,
     val profileRepository: ProfileRepository,
+    val conversationRepository: ConversationRepository,
 )
 
 fun createFitMeetRepositories(
@@ -21,10 +25,12 @@ fun createFitMeetRepositories(
     return FitMeetRepositories(
         authRepository = SupabaseAuthRepository(supabase),
         profileRepository = SupabaseProfileRepository(supabase),
+        conversationRepository = SupabaseConversationRepository(supabase),
     )
 }
 
 fun createUnconfiguredFitMeetRepositories() = FitMeetRepositories(
     authRepository = UnconfiguredAuthRepository,
     profileRepository = UnconfiguredProfileRepository,
+    conversationRepository = UnconfiguredConversationRepository,
 )
