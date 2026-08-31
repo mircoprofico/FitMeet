@@ -1,9 +1,149 @@
 package ch.heigvd.fitmeet.ui.messages
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import ch.heigvd.fitmeet.data.messages.ConversationMessage
+import ch.heigvd.fitmeet.data.messages.ConversationRepository
 
 @Composable
-fun ConversationScreen(activityId: String) {
-    Text("Conversation - #131 - Pierre")
+fun ConversationScreen(
+    conversationId: String = "",
+    navController: NavHostController,
+    conversationRepository: ConversationRepository,
+) {
+    var messages by remember { mutableStateOf<List<ConversationMessage>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val currentUserId = conversationRepository.currentUserId()
+
+    LaunchedEffect(conversationRepository, conversationId) {
+        conversationRepository.getMessages(conversationId)
+            .onSuccess {
+                messages = it
+                errorMessage = null
+            }
+            .onFailure {
+                errorMessage = it.message ?: "Impossible de charger les messages."
+            }
+        isLoading = false
+    }
+
+    val backgroundColor = Color(0xFFDDDDDD)
+    val separationColor = Color(0xFFBBBBBB)
+    val textColor = Color(0xFF102E53)
+
+    MaterialTheme {
+        Column(
+            modifier = Modifier
+                .background(backgroundColor)
+                .safeContentPadding()
+                .fillMaxSize()
+                .imePadding(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .drawBehind {
+                        drawLine(
+                            color = separationColor,
+                            start = Offset(0f, size.height),
+                            end = Offset(size.width, size.height),
+                            strokeWidth = 5.dp.toPx(),
+                        )
+                    },
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(10.dp, 0.dp),
+                ) {
+                    Button(onClick = { navController.popBackStack() }) {
+                        Text("Retour")
+                    }
+                    Text(
+                        text = "Conversation",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.W900,
+                        color = textColor,
+                        modifier = Modifier.padding(10.dp, 0.dp),
+                    )
+                }
+            }
+
+            when {
+                isLoading -> Text("Chargement des messages...", modifier = Modifier.padding(24.dp))
+                errorMessage != null -> Text(
+                    text = errorMessage.orEmpty(),
+                    modifier = Modifier.padding(24.dp),
+                    color = MaterialTheme.colorScheme.error,
+                )
+                messages.isEmpty() -> Text("Aucun message.", modifier = Modifier.padding(24.dp))
+                else -> LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                ) {
+                    items(messages, key = { it.id }) { message ->
+                        val isMine = message.senderId == currentUserId
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    start = if (isMine) 60.dp else 10.dp,
+                                    end = if (isMine) 10.dp else 60.dp,
+                                    top = 5.dp,
+                                    bottom = 5.dp,
+                                ),
+                            contentAlignment = if (isMine) Alignment.CenterEnd else Alignment.CenterStart,
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = if (isMine) Color(0xFF2196F3) else Color.White,
+                                        shape = MaterialTheme.shapes.large,
+                                    )
+                                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                            ) {
+                                Text(
+                                    text = message.content,
+                                    color = if (isMine) Color.White else Color.Black,
+                                    fontSize = 20.sp,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

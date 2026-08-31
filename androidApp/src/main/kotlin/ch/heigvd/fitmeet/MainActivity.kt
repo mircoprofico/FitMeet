@@ -10,18 +10,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import ch.heigvd.fitmeet.data.auth.AuthRepository
+import ch.heigvd.fitmeet.data.FitMeetRepositories
+import ch.heigvd.fitmeet.data.createFitMeetRepositories
+import ch.heigvd.fitmeet.data.createUnconfiguredFitMeetRepositories
 import ch.heigvd.fitmeet.data.auth.PreviewAuthRepository
-import ch.heigvd.fitmeet.data.auth.UnconfiguredAuthRepository
-import ch.heigvd.fitmeet.data.auth.createSupabaseAuthRepository
 
 class MainActivity : ComponentActivity() {
     private var authenticationCallbackUrl by mutableStateOf<String?>(null)
-    private val authRepository: AuthRepository by lazy {
+    private val repositories: FitMeetRepositories by lazy {
         if (BuildConfig.SUPABASE_URL.isBlank() || BuildConfig.SUPABASE_PUBLISHABLE_KEY.isBlank()) {
-            UnconfiguredAuthRepository
+            createUnconfiguredFitMeetRepositories()
         } else {
-            createSupabaseAuthRepository(
+            createFitMeetRepositories(
                 supabaseUrl = BuildConfig.SUPABASE_URL,
                 publishableKey = BuildConfig.SUPABASE_PUBLISHABLE_KEY,
             )
@@ -35,7 +35,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             App(
-                authRepository = authRepository,
+                authRepository = repositories.authRepository,
+                profileRepository = repositories.profileRepository,
+                conversationRepository = repositories.conversationRepository,
                 authenticationCallbackUrl = authenticationCallbackUrl,
             )
         }
