@@ -25,3 +25,6 @@ import kotlinx.serialization.Serializable
 // --- Pages opened from a tab ---
 @Serializable data class ActivityDetail(val activityId: String)   // Mirco
 @Serializable data class Conversation(val activityId: String)     // Pierre
+
+// --- Profile editing ---
+@Serializable object EditProfile

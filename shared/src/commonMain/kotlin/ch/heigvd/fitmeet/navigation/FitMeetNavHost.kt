@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,8 +22,10 @@ import ch.heigvd.fitmeet.ui.auth.RegisterScreen
 import ch.heigvd.fitmeet.ui.map.MapScreen
 import ch.heigvd.fitmeet.ui.messages.ConversationListScreen
 import ch.heigvd.fitmeet.ui.messages.ConversationScreen
+import ch.heigvd.fitmeet.ui.profile.EditProfileScreen
 import ch.heigvd.fitmeet.ui.profile.ProfileScreen
 import ch.heigvd.fitmeet.ui.onboarding.onboarding_2_sports
+import ch.heigvd.fitmeet.ui.profile.ProfileViewModel
 
 /**
  * Maps every route to its screen.
@@ -75,7 +79,16 @@ fun FitMeetNavHost(
                     "Ouvrir une conversation" to { navController.navigate(Conversation("demo-1")) },
                 ) { ConversationListScreen() }
             }
-            composable<Profile> { ProfileScreen() }
+            composable<Profile> { entry ->
+                val parentEntry = remember(entry) { navController.getBackStackEntry<MainGraph>() }
+                val viewModel: ProfileViewModel = viewModel(parentEntry)
+                ProfileScreen(viewModel = viewModel, onEditProfile = { navController.navigate(EditProfile) })
+            }
+            composable<EditProfile> { entry ->
+                val parentEntry = remember(entry) { navController.getBackStackEntry<MainGraph>() }
+                val viewModel: ProfileViewModel = viewModel(parentEntry)
+                EditProfileScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+            }
 
             composable<ActivityDetail> { entry ->
                 ActivityDetailScreen(activityId = entry.toRoute<ActivityDetail>().activityId)
