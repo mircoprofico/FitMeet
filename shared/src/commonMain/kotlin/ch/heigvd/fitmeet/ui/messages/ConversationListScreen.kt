@@ -1,6 +1,7 @@
 package ch.heigvd.fitmeet.ui.messages
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,10 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -24,6 +29,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ch.heigvd.fitmeet.ui.theme.Sport
+
+
+//TODO Connect with supabase get
+private data class groupInfo(
+    val groupName: String = "",
+    val sportType: Sport = Sport.FOOTBALL,
+    val groupID : String = "-1"
+)
 
 @Preview
 @Composable
@@ -32,22 +46,10 @@ fun ConversationListScreen() {
     val separationColor = Color(0xFFBBBBBB)
     val textColor = Color(0xFF102E53)
 
-    val discussions_temp = listOf(
-        "Foot en 5v5",
-        "minigolf",
-        "Tour du lac","Foot en 5v5",
-        "minigolf",
-        "Tour du lac","Foot en 5v5",
-        "minigolf",
-        "Tour du lac","Foot en 5v5",
-        "minigolf",
-        "Tour du lac","Foot en 5v5",
-        "minigolf",
-        "Tour du lac","Foot en 5v5",
-        "minigolf",
-        "Tour du lac","Foot en 5v5",
-        "minigolf",
-        "Tour du lac"
+    val discussions_temp = mutableStateListOf<groupInfo>(
+        groupInfo("Foot en 5v5", Sport.FOOTBALL),
+        groupInfo("Tour du lac", Sport.RUNNING),
+        groupInfo("match chill", Sport.BASKETBALL)
     )
 
     MaterialTheme {
@@ -95,29 +97,22 @@ fun ConversationListScreen() {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(70.dp)
+                            .height(100.dp)
                             .padding(horizontal = 10.dp, vertical = 5.dp)
-                            .background(Color.White),
+                            .background(disc.sportType.tint)
+                            .clickable{
+                                // TODO open corresponding discussion
+                            },
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Text(
-                            text = disc,
+                            text = disc.groupName,
                             modifier = Modifier.padding(start = 15.dp),
                             fontSize = 20.sp
                         )
-
-                        Button(
-                            onClick = { },
-                            modifier = Modifier.align(Alignment.CenterEnd)
-                        ) {
-                            Text("Ouvrir")
-                        }
                     }
                 }
             }
-
-
-
         }
     }
 }
