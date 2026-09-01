@@ -54,7 +54,7 @@ fun ConversationListScreen(
         isLoading = false
     }
 
-    val backgroundColor = Color(0xFFDDDDDD)
+    val backgroundColor = Color(0xFFFFFFFF)
     val separationColor = Color(0xFFBBBBBB)
     val textColor = Color(0xFF102E53)
 
@@ -122,7 +122,8 @@ fun ConversationListScreen(
                                     fontWeight = FontWeight.Black,
                                 )
                                 Text(
-                                    text = conversation.locationName,
+                                    text = if(conversation.isOrganizer)
+                                        "Vous avez créé cet evenement" else "",
                                     fontSize = 14.sp,
                                     color = textColor,
                                 )
