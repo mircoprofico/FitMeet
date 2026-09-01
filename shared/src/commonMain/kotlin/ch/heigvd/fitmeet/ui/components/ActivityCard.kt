@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,11 +50,11 @@ fun ActivityCard(
     modifier: Modifier = Modifier,
 ) {
     Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
-        // fixed height so every card lines up in the list.
-        // 100 and not 88: at 88 the level chip gets cut off, compose line
-        // height is around 1.5x the font size and that adds up.
+        // 100 dp: one title line, date, place and the button row.
+        // the mockup is 123 because its titles wrap on two lines.
         Row(modifier = Modifier.height(100.dp)) {
-            // left: sport icon on its tinted square
+
+            // left: sport icon on its tinted block
             Box(
                 modifier = Modifier
                     .width(88.dp)
@@ -62,44 +64,66 @@ fun ActivityCard(
             ) {
                 Image(
                     painter = painterResource(sport.icon),
-                        contentDescription = sport.label, // no text says the sport, so it needs a description
+                    contentDescription = sport.label, // no text says the sport, so it needs a description
                     modifier = Modifier.size(46.dp),
                 )
             }
 
-            // middle: takes whatever width is left over
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalArrangement = Arrangement.Top,
-            ) {
-                Text(
-                    text = title,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis, // long titles would break the layout otherwise
-                )
-                Text(dateTime, fontSize = 12.sp)
-                Text(place, fontSize = 12.sp)
-                LevelChip(level, Modifier.padding(top = 6.dp))
-            }
-
-            // right: counter on top, buttons at the bottom
-            Column(
-                modifier = Modifier
                     .fillMaxHeight()
-                    .padding(end = 15.dp, top = 8.dp, bottom = 7.dp),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.SpaceBetween, // needs fillMaxHeight above to work
+                    .padding(start = 12.dp, end = 15.dp, top = 4.dp, bottom = 4.dp),
+                // SpaceBetween pins the bottom row: the chip and the buttons
+                // never move, whatever the title does above them
+                verticalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(
-                    text = "$participants/$capacity",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                // top: the texts take the full width, only the counter limits them
+                Row {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp), // title <-> block
+                    ) {
+                        Text(
+                            text = title,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            maxLines = 1, // one line only, long titles get an ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        // date and place go together, tighter than with the title
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            // one line each too: a long place name would wrap
+                            // and push the card past its fixed height
+                            Text(
+                                text = dateTime,
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = place,
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                    Text(
+                        text = "$participants/$capacity",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.End,
+                        // fixed width so "12/12" does not steal room from the
+                        // title: every card wraps at the same place
+                        modifier = Modifier.padding(start = 8.dp).width(44.dp),
+                    )
+                }
+
+                // bottom: level on the left, actions on the right
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    LevelChip(level)
+                    Spacer(Modifier.weight(1f))
                     Button(
                         onClick = {}, // TODO: open the detail sheet
                         // square 27x27, sizes measured on the mockup.
@@ -111,10 +135,11 @@ fun ActivityCard(
                             containerColor = Color(0xFFE3E3E3),
                             contentColor = Color(0xFF8A8A8A),
                         ),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(8.dp),
                     ) {
                         Text("i", fontSize = 12.sp)
                     }
+                    Spacer(Modifier.width(3.dp))
                     Button(
                         onClick = onJoin,
                         modifier = Modifier.width(111.dp).height(27.dp),
@@ -122,7 +147,7 @@ fun ActivityCard(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF3E8E68),
                         ),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(8.dp),
                     ) {
                         Text("Rejoindre", fontSize = 12.sp)
                     }
