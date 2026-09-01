@@ -18,7 +18,7 @@ class ActivityData {
     var description by mutableStateOf("")
     var difficulty by mutableStateOf(Level.ALL)
 
-    var capacity by mutableStateOf(0)
+    var capacity by mutableStateOf(2)
 }
 
 var activityData = ActivityData()
