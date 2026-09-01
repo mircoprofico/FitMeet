@@ -26,8 +26,7 @@ val activities: Array<@Composable () -> Unit> = arrayOf(
     { ActivityType() },
     { ActivityDateTimeDuration() },
     { ActivityLocation() },
-    { ActivityInfos() },
-    { RESULTDELETEME() }
+    { ActivityInfos() }
 )
 
 @Composable
