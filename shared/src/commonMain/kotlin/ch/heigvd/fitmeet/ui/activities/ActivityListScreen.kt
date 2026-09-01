@@ -30,7 +30,9 @@ fun ActivityListScreen(
     // screen, so a long list stays smooth
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 11.dp),
+        // contentPadding is the space before the first card and after the
+        // last one, spacedBy below is the gap between two cards
+        contentPadding = PaddingValues(top = 20.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(11.dp), // gap measured on the mockup
     ) {
         items(activities, key = { it.id }) { activity ->
