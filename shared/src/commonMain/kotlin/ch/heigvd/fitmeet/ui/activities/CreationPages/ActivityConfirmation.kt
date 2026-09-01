@@ -73,7 +73,8 @@ fun ActivityConfirmation(
                                 popUpTo("createActivity") {
                                     inclusive = true
                                 }
-                            }                        }.onFailure {
+                            }
+                        }.onFailure {
                             errorMessage = it.message ?: "L'activité n'a pas pu être créée."
                         }
                         isSaving = false
