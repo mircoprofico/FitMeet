@@ -79,7 +79,7 @@ fun CreateActivityScreen(
                 .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(15.dp))
 
             Text(
                 "Nouvelle Activité",

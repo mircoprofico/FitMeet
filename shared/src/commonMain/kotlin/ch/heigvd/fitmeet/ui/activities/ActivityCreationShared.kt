@@ -32,6 +32,6 @@ fun ActivityData.reset() {
     name = ""
     description = ""
     difficulty = Level.ALL
-    capacity = 3
+    capacity = 2
 }
 
