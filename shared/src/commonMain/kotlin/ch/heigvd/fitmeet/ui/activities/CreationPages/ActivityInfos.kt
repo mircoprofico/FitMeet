@@ -1,9 +1,14 @@
 package ch.heigvd.fitmeet.ui.activities
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -16,7 +21,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ch.heigvd.fitmeet.ui.components.LevelChip
+import ch.heigvd.fitmeet.ui.theme.Level
 
+
+private val deactivatedChipBgColor = Color(0xFF777777)
 @Preview
 @Composable
 fun ActivityInfos() {
@@ -67,6 +76,41 @@ fun ActivityInfos() {
                     shape = RoundedCornerShape(10.dp)
                 ),
                 shape = RoundedCornerShape(20.dp)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Row (){
+                LevelChip(
+                    level = Level.BEGINNER,
+                    modifier = Modifier
+                        .then(
+                        if(activityData.difficulty == Level.BEGINNER)
+                            Modifier
+                        else
+                            Modifier.background(deactivatedChipBgColor)
+                    ).
+                        clickable(onClick = {activityData.difficulty = Level.BEGINNER})
+
+                    )
+                Spacer(modifier = Modifier.width(10.dp))
+                LevelChip(
+                    level = Level.INTERMEDIATE,
+                    modifier = Modifier.
+                    clickable(onClick = {activityData.difficulty = Level.INTERMEDIATE})
+                )
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                LevelChip(
+                    level = Level.ADVANCED,
+                    modifier = Modifier.
+                    clickable(onClick = {activityData.difficulty = Level.ADVANCED})
+                )
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            LevelChip(
+                level = Level.ALL,
+                modifier = Modifier.
+                clickable(onClick = {activityData.difficulty = Level.ALL})
             )
         }
     }
