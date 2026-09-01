@@ -37,92 +37,50 @@ import org.jetbrains.compose.resources.painterResource
 @Preview
 @Composable
 fun ActivityType() {
-    MaterialTheme {
-        Column(
-            modifier = Modifier
-                .background(Color(0xFF102E53))
-                .safeContentPadding()
-                .fillMaxSize()
-                .padding(horizontal = 28.dp, vertical=48.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            "Quel type d'activité\nvoulez vous créer?",
+            color = Color(0xFFAAAAAA),
+            fontWeight = FontWeight.W500,
+            fontSize = 32.sp
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+        /** Activities */
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3) , // show activities on 3 columns
+            modifier = Modifier.fillMaxWidth().weight(1f)
         ){
-
-            /** New Activity title*/
-            // Spacing before title
-            Spacer(
-                modifier = Modifier.height(60.dp)
-            )
-
-            // Title. This should be the same for every pages of the activity creation
-            Text(
-                "Nouvelle Activité",
-                style = MaterialTheme.typography.headlineLarge,
-                color = Color(0xFFFFFFFF),
-                fontWeight = FontWeight.W900,
-                fontSize = 40.sp
-            )
-            Spacer(modifier = Modifier.height(90.dp))
-            // current page title
-            Text(
-                "Quel type d'activité\nvoulez vous créer?",
-                style = MaterialTheme.typography.headlineSmall,
-                color = Color(0xFFAAAAAA),
-                fontWeight = FontWeight.W500,
-                fontSize = 32.sp
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-            /** Activities */
-
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3) , // show activities on 3 columns
-                modifier = Modifier.fillMaxWidth().weight(1f)
-                ){
-                items(Sport.entries){sport ->
-                    Button(
-                        onClick = {activityData.type = sport.label},
-                        enabled = (activityData.type != sport.label),
-                        modifier = Modifier.width(100.dp).height(120.dp).padding(5.dp),
-                        shape = RoundedCornerShape(6.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF555555),
-                            disabledContainerColor = Color(0xFF3E8E68),
-                            disabledContentColor = Color(0xFFFFFFFF),
-                            contentColor = Color(0xFF999999)
-                        ),
-                        ){
-                        Image(
-                            painter = painterResource(sport.icon),
-                            contentDescription = sport.label,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                                .alpha(if (activityData.type == sport.label) 1f else 0.6f),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
+            items(Sport.entries){sport ->
+                Button(
+                    onClick = {activityData.type = sport.label},
+                    enabled = (activityData.type != sport.label),
+                    modifier = Modifier.width(100.dp).height(120.dp).padding(5.dp),
+                    shape = RoundedCornerShape(6.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF555555),
+                        disabledContainerColor = Color(0xFF3E8E68),
+                        disabledContentColor = Color(0xFFFFFFFF),
+                        contentColor = Color(0xFF999999)
+                    ),
+                    ){
+                    Image(
+                        painter = painterResource(sport.icon),
+                        contentDescription = sport.label,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .alpha(if (activityData.type == sport.label) 1f else 0.6f),
+                        contentScale = ContentScale.Fit
+                    )
                 }
-            }
-
-            // Next page Button
-            Button(onClick = { currentScreen.value += 1 },
-                enabled = activityData.type != "None",
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF3E8E68),
-                    disabledContainerColor = Color(0xFF888888)
-                ),
-                shape = RoundedCornerShape(6.dp),
-                modifier = Modifier.align(Alignment.End)
-            )
-            {
-                 Text("Suivant",
-                     style = MaterialTheme.typography.headlineLarge,
-                     fontWeight = FontWeight.W600
-                 )
             }
         }
     }
 }
+
 
 
 

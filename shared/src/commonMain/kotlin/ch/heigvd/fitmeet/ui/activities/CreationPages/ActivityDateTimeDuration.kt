@@ -1,15 +1,8 @@
 package ch.heigvd.fitmeet.ui.activities
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,32 +37,8 @@ MaterialTheme {
     val timePickerState = rememberTimePickerState()
 
     Column(
-        modifier = Modifier
-            .background(Color(0xFF102E53))
-            .safeContentPadding()
-            .fillMaxSize()
-            .padding(horizontal = 28.dp, vertical=48.dp)
-            .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ){
-        /** New Activity title*/
-        // Spacing before title
-        Spacer(
-            modifier = Modifier.height(60.dp)
-        )
-
-        // Title. This should be the same for every pages of the activity creation
-        Text(
-            "Nouvelle Activité",
-            style = MaterialTheme.typography.headlineLarge,
-            color = Color(0xFFFFFFFF),
-            fontWeight = FontWeight.W900,
-            fontSize = 40.sp
-        )
-        Spacer(
-            modifier = Modifier.height(90.dp)
-        )
-
         // current page title
         Text(
             "Quel jour?",
@@ -113,36 +82,6 @@ MaterialTheme {
                 } else {
                     activityData.time
                 }
-            )
-        }
-        Spacer(
-            modifier = Modifier.height(20.dp)
-        )
-
-
-
-
-        /** Button for next page */
-        // push the button to the bottom of the screen
-        Spacer(
-            modifier = Modifier.weight(1f)
-        )
-
-
-        // Next page Button
-        Button(onClick = { currentScreen.value += 1 },
-            enabled = activityData.date != null && activityData.time != "",
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF3E8E68),
-                disabledContainerColor = Color(0xFF888888)
-            ),
-            shape = RoundedCornerShape(6.dp),
-            modifier = Modifier.align(Alignment.End)
-        )
-        {
-            Text("Suivant",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.W600
             )
         }
     }
