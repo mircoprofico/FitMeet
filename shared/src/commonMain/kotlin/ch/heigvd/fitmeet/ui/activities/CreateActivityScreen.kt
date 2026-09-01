@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import ch.heigvd.fitmeet.data.activityCreation.EventRepository
+import ch.heigvd.fitmeet.navigation.ActivityList
 import ch.heigvd.fitmeet.ui.activities.CreationPages.ActivityConfirmation
 
 
@@ -67,6 +68,30 @@ fun CreateActivityScreen(
                     "Suivant",
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.W600
+                )
+            }
+        },
+        topBar = {
+            Button(
+                onClick = {
+                    activityData.reset()
+                    navController.navigate(ActivityList) {
+                        popUpTo(ActivityList) {
+                            inclusive = true
+                        }
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFF0000),
+                ),
+                shape = RoundedCornerShape(6.dp),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    "X",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.W900,
+                    color = Color(0xFFFFFFFF)
                 )
             }
         }
