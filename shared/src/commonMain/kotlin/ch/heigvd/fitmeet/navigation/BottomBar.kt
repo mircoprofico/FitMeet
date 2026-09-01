@@ -8,6 +8,7 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
+import ch.heigvd.fitmeet.ui.messages.ConversationScreen
 
 private data class BottomTab(val route: Any, val label: String)
 
@@ -30,9 +31,10 @@ fun BottomBar(
 ) {
 
     // We shouldn't see the navBar if we are creating a new activity
-    if (currentDestination?.hierarchy?.any { it.hasRoute(CreateActivity::class) } == true) {
-        return
-    }
+    if (currentDestination?.hierarchy?.any { it.hasRoute(CreateActivity::class) } == true) return
+
+    // We shouldn't see the navBar if we are in a discussion
+    if (currentDestination?.hierarchy?.any { it.hasRoute(Conversation::class) } == true) return
 
     NavigationBar {
         tabs.forEach { tab ->

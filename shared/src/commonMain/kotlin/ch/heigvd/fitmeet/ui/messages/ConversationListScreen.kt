@@ -54,7 +54,7 @@ fun ConversationListScreen(
         isLoading = false
     }
 
-    val backgroundColor = Color(0xFFDDDDDD)
+    val backgroundColor = Color(0xFFFFFFFF)
     val separationColor = Color(0xFFBBBBBB)
     val textColor = Color(0xFF102E53)
 
@@ -111,7 +111,7 @@ fun ConversationListScreen(
                                 .padding(horizontal = 10.dp, vertical = 5.dp)
                                 .background(Color(0xFFB8D8E8))
                                 .clickable {
-                                    navController.navigate(Conversation(conversation.conversationId))
+                                    navController.navigate(Conversation(conversation.conversationId, conversation.title))
                                 },
                             contentAlignment = Alignment.CenterStart,
                         ) {
@@ -122,7 +122,8 @@ fun ConversationListScreen(
                                     fontWeight = FontWeight.Black,
                                 )
                                 Text(
-                                    text = conversation.locationName,
+                                    text = if(conversation.isOrganizer)
+                                        "Vous avez créé cet evenement" else "",
                                     fontSize = 14.sp,
                                     color = textColor,
                                 )
