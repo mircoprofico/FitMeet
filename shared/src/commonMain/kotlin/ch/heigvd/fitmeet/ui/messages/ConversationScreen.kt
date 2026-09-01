@@ -163,6 +163,11 @@ fun ConversationScreen(
                 }
             }
 
+
+            /**
+             * Input part
+             * */
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -175,11 +180,10 @@ fun ConversationScreen(
                     modifier = Modifier.weight(1f),
                     placeholder = {
                         Text("Écrire un message...")
-                    }
+                    },
+                    minLines = 1,
                 )
-
-                Spacer(modifier = Modifier.width(8.dp).weight(1f))
-
+                Spacer(modifier = Modifier.width(5.dp))
                 Button(
                     onClick = {
                         if (currentUserId != null && currentMessage.isNotBlank()) {
@@ -203,9 +207,7 @@ fun ConversationScreen(
                             }
                         }
                     }
-                ) {
-                    Text(">")
-                }
+                ) { Text(">") }
             }
         }
     }
