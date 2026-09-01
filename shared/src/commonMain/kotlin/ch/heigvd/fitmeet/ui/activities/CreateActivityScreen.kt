@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ch.heigvd.fitmeet.ui.activities.CreationPages.ActivityConfirmation
 
 
 val activities: Array<@Composable () -> Unit> = arrayOf(
@@ -32,7 +33,7 @@ val activities: Array<@Composable () -> Unit> = arrayOf(
 @Composable
 fun CreateActivityScreen() {
     if (currentScreen.value >= activities.size - 1) {
-        RESULTDELETEME()
+        ActivityConfirmation()
         return
     }
 
