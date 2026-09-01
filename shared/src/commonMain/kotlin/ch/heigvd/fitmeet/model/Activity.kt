@@ -10,6 +10,10 @@ data class Activity(
     val id: String,
     val title: String,
     val sport: Sport,
+    // iso 8601, sortable as plain text: year then month then day.
+    // this is what starts_at holds in the events table.
+    val startsAt: String,
+    // already formatted for the card, "Aujourd'hui - 14h30"
     val dateTime: String,
     val place: String,
     val level: Level,

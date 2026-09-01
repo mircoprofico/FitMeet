@@ -26,6 +26,11 @@ fun ActivityListScreen(
         return
     }
 
+    // sortedBy returns a new list, it does not touch the one we got.
+    // iso dates sort as plain text, so no date parsing needed here.
+    // TODO: sort by distance first once the events carry coordinates (#75)
+    val sorted = activities.sortedBy { it.startsAt }
+
     // LazyColumn and not Column: it only builds the rows that are on
     // screen, so a long list stays smooth
     LazyColumn(
@@ -35,7 +40,7 @@ fun ActivityListScreen(
         contentPadding = PaddingValues(top = 20.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(11.dp), // gap measured on the mockup
     ) {
-        items(activities, key = { it.id }) { activity ->
+        items(sorted, key = { it.id }) { activity ->
             ActivityCard(
                 title = activity.title,
                 sport = activity.sport,
