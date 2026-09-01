@@ -29,8 +29,11 @@ fun ActivityLocation() {
         Text(
             text = if (selectedLat == null)
                 "Appuyez sur la carte pour choisir la localisation"
-            else
-                "%.5f, %.5f".format(selectedLat, selectedLng),
+            else {
+                val lat = (selectedLat!! * 100000).toLong().toDouble() / 100000.0
+                val lng = (selectedLng!! * 100000).toLong().toDouble() / 100000.0
+                "$lat, $lng"
+            },
             color = if (selectedLat == null) Color(0xFFAAAAAA) else Color.White,
             fontWeight = FontWeight.W500,
             fontSize = 18.sp,
