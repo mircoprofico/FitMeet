@@ -100,9 +100,9 @@ fun FitMeetNavHost(
 
         navigation<MainGraph>(startDestination = ActivityList) {
             composable<ActivityList> {
-                TemporaryNav(
-                    "Ouvrir une activite" to { navController.navigate(ActivityDetail("demo-1")) },
-                ) { ActivityListScreen() }
+                ActivityListScreen(
+                    onActivityClick = { id -> navController.navigate(ActivityDetail(id)) },
+                )
             }
             composable<MapTab> { MapScreen() }
             composable<CreateActivity> { CreateActivityScreen(eventRepository, navController) }
