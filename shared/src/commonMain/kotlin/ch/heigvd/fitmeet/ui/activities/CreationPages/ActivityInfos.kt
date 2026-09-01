@@ -125,7 +125,7 @@ fun ActivityInfos() {
                     if(activityData.difficulty == Level.ALL)
                         Modifier
                     else
-                        Modifier.alpha(0.5f) //todo opacity
+                        Modifier.alpha(0.5f)
                 )
                     .clickable(onClick = {activityData.difficulty = Level.ALL})
             )
