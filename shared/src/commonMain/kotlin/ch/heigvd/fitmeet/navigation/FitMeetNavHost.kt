@@ -175,6 +175,17 @@ private fun TemporaryNav(
  * Clears the auth screens from the back stack, so pressing back closes
  * the app instead of returning to the login screen.
  */
+private fun NavHostController.openAfterAuthentication(state: OnboardingState) {
+    if (state.complete) {
+        enterApp()
+        return
+    }
+    navigate(Onboarding) {
+        popUpTo(Login) { inclusive = true }
+        launchSingleTop = true
+    }
+}
+
 private fun NavHostController.enterApp() {
     navigate(MainGraph) {
         popUpTo(AuthGraph) { inclusive = true }

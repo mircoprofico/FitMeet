@@ -16,7 +16,6 @@ interface AuthRepository {
     suspend fun requestPasswordReset(email: String): AuthActionResult
     suspend fun handleAuthenticationCallback(url: String): AuthActionResult
     suspend fun restoreSession(): AuthRestoreResult
-    suspend fun signOut(): AuthActionResult
 }
 
 class SupabaseAuthRepository internal constructor(
@@ -63,11 +62,6 @@ class SupabaseAuthRepository internal constructor(
         AuthRestoreResult(supabase.auth.currentUserOrNull() != null)
     }.getOrElse { AuthRestoreResult(false) }
 
-    override suspend fun signOut(): AuthActionResult = runCatching {
-        supabase.auth.signOut()
-        AuthActionResult(true, "Vous êtes déconnecté.")
-    }.getOrElse(::authFailure)
-
     private fun authFailure(error: Throwable) = AuthActionResult(
         isSuccess = false,
         message = error.message ?: "Une erreur est survenue. Réessayez.",
@@ -81,7 +75,6 @@ object PreviewAuthRepository : AuthRepository {
     override suspend fun requestPasswordReset(email: String) = AuthActionResult(true, "Aperçu : e-mail simulé.")
     override suspend fun handleAuthenticationCallback(url: String) = AuthActionResult(true, "Aperçu : e-mail confirmé.")
     override suspend fun restoreSession() = AuthRestoreResult(false)
-    override suspend fun signOut() = AuthActionResult(true, "Aperçu : déconnexion simulée.")
 }
 
 object UnconfiguredAuthRepository : AuthRepository {
@@ -92,5 +85,4 @@ object UnconfiguredAuthRepository : AuthRepository {
     override suspend fun requestPasswordReset(email: String) = AuthActionResult(false, message)
     override suspend fun handleAuthenticationCallback(url: String) = AuthActionResult(false, message)
     override suspend fun restoreSession() = AuthRestoreResult(false)
-    override suspend fun signOut() = AuthActionResult(false, message)
 }
