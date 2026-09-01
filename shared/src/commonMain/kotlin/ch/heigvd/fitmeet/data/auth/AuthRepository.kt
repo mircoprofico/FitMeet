@@ -1,12 +1,13 @@
 package ch.heigvd.fitmeet.data.auth
 
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.parseSessionFromUrl
 import io.github.jan.supabase.auth.providers.builtin.Email
-import io.github.jan.supabase.auth.parseFragmentAndImportSession
-import io.github.jan.supabase.annotations.SupabaseInternal
-import ch.heigvd.fitmeet.data.supabase.createFitMeetSupabaseClient
+import io.github.jan.supabase.auth.status.SessionSource
 
 data class AuthActionResult(val isSuccess: Boolean, val message: String)
+
+data class AuthRestoreResult(val isAuthenticated: Boolean)
 
 interface AuthRepository {
     suspend fun signIn(email: String, password: String): AuthActionResult
@@ -14,6 +15,8 @@ interface AuthRepository {
     suspend fun signOut(): AuthActionResult
     suspend fun requestPasswordReset(email: String): AuthActionResult
     suspend fun handleAuthenticationCallback(url: String): AuthActionResult
+    suspend fun restoreSession(): AuthRestoreResult
+    suspend fun signOut(): AuthActionResult
 }
 
 class SupabaseAuthRepository internal constructor(
@@ -45,10 +48,24 @@ class SupabaseAuthRepository internal constructor(
         AuthActionResult(true, "Un e-mail de réinitialisation a été envoyé.")
     }.getOrElse(::authFailure)
 
-    @OptIn(SupabaseInternal::class)
     override suspend fun handleAuthenticationCallback(url: String): AuthActionResult = runCatching {
-        supabase.auth.parseFragmentAndImportSession(url) { }
+        val session = supabase.auth.parseSessionFromUrl(url)
+        val user = supabase.auth.retrieveUser(session.accessToken)
+        supabase.auth.importSession(
+            session.copy(user = user),
+            source = SessionSource.External,
+        )
         AuthActionResult(true, "Votre e-mail est confirmé.")
+    }.getOrElse(::authFailure)
+
+    override suspend fun restoreSession(): AuthRestoreResult = runCatching {
+        supabase.auth.awaitInitialization()
+        AuthRestoreResult(supabase.auth.currentUserOrNull() != null)
+    }.getOrElse { AuthRestoreResult(false) }
+
+    override suspend fun signOut(): AuthActionResult = runCatching {
+        supabase.auth.signOut()
+        AuthActionResult(true, "Vous êtes déconnecté.")
     }.getOrElse(::authFailure)
 
     private fun authFailure(error: Throwable) = AuthActionResult(
@@ -57,17 +74,14 @@ class SupabaseAuthRepository internal constructor(
     )
 }
 
-fun createSupabaseAuthRepository(
-    supabaseUrl: String,
-    publishableKey: String,
-): AuthRepository = SupabaseAuthRepository(createFitMeetSupabaseClient(supabaseUrl, publishableKey))
-
 object PreviewAuthRepository : AuthRepository {
     override suspend fun signIn(email: String, password: String) = AuthActionResult(true, "Aperçu : connexion simulée.")
     override suspend fun signUp(email: String, password: String) = AuthActionResult(true, "Aperçu : compte simulé.")
     override suspend fun signOut() = AuthActionResult(true, "Aperçu : déconnexion simulée.")
     override suspend fun requestPasswordReset(email: String) = AuthActionResult(true, "Aperçu : e-mail simulé.")
     override suspend fun handleAuthenticationCallback(url: String) = AuthActionResult(true, "Aperçu : e-mail confirmé.")
+    override suspend fun restoreSession() = AuthRestoreResult(false)
+    override suspend fun signOut() = AuthActionResult(true, "Aperçu : déconnexion simulée.")
 }
 
 object UnconfiguredAuthRepository : AuthRepository {
@@ -77,4 +91,6 @@ object UnconfiguredAuthRepository : AuthRepository {
     override suspend fun signOut() = AuthActionResult(true, "Déconnexion (hors ligne).")
     override suspend fun requestPasswordReset(email: String) = AuthActionResult(false, message)
     override suspend fun handleAuthenticationCallback(url: String) = AuthActionResult(false, message)
+    override suspend fun restoreSession() = AuthRestoreResult(false)
+    override suspend fun signOut() = AuthActionResult(false, message)
 }

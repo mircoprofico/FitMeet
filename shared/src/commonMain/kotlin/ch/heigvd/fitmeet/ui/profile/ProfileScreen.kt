@@ -53,6 +53,9 @@ fun ProfileScreen(
     onSignOut: suspend () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var logoutMessage by remember { mutableStateOf<AuthActionResult?>(null) }
+    val scope = rememberCoroutineScope()
+
     when (val state = uiState) {
         is ProfileUiState.Loading -> Box(
             modifier = Modifier.fillMaxSize(),

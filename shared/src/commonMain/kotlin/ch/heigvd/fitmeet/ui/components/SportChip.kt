@@ -20,10 +20,8 @@ import androidx.compose.ui.unit.sp
 import ch.heigvd.fitmeet.ui.theme.Sport
 import org.jetbrains.compose.resources.painterResource
 
-/**
- * Shows a sport icon and its label on a rounded pill tinted for that sport.
- * The modifier order matters: shape, then background, then inner padding.
- */
+// same idea as LevelChip but with the sport icon next to the label.
+// icons are pngs in composeResources so they look the same on Android and iOS
 @Composable
 fun SportChip(sport: Sport, modifier: Modifier = Modifier) {
     Row(
@@ -36,7 +34,7 @@ fun SportChip(sport: Sport, modifier: Modifier = Modifier) {
     ) {
         Image(
             painter = painterResource(sport.icon),
-            contentDescription = null,
+            contentDescription = null, // label is right next to it, no need to repeat it
             modifier = Modifier.size(14.dp),
         )
         Text(text = sport.label, color = Color(0xFF16261F), fontSize = 11.sp)

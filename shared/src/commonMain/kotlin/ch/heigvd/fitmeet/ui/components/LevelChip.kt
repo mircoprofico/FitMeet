@@ -14,10 +14,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.heigvd.fitmeet.ui.theme.Level
 
-/**
- * Shows the label of a level in white on a rounded pill of its own colour.
- * The modifier order matters: shape, then background, then inner padding.
- */
+// small pill with the level name, coloured per level.
+// modifier order matters here: clip -> background -> padding.
+// if padding comes first the background does not cover it.
 @Composable
 fun LevelChip(level: Level, modifier: Modifier = Modifier) {
     Text(
