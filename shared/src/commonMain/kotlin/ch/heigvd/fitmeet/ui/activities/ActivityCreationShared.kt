@@ -8,9 +8,9 @@ var currentScreen = mutableStateOf(0)
 
 class ActivityData {
     var type by mutableStateOf("None")
-    var date by mutableStateOf<Long?>(null)
+    var date by mutableStateOf("")
     var time by mutableStateOf("")
-    var duration by mutableStateOf(15)
+    var duration by mutableStateOf(0)
 
     var position by mutableStateOf("")
     var name by mutableStateOf("")
