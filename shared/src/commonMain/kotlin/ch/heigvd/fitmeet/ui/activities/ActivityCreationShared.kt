@@ -21,6 +21,14 @@ class ActivityData {
 
 var activityData = ActivityData()
 
-
-
+fun ActivityData.reset() {
+    type = "None"
+    date = ""
+    time = ""
+    duration = 0
+    position = "POINT(0.0000, 0.0000)"
+    name = ""
+    description = ""
+    difficulty = Level.ALL
+}
 

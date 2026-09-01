@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
 import ch.heigvd.fitmeet.data.auth.AuthRepository
+import ch.heigvd.fitmeet.data.activityCreation.EventRepository
 import ch.heigvd.fitmeet.data.profile.OnboardingState
 import ch.heigvd.fitmeet.data.profile.ProfileRepository
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
@@ -41,6 +42,7 @@ fun FitMeetNavHost(
     authRepository: AuthRepository,
     profileRepository: ProfileRepository,
     conversationRepository: ConversationRepository,
+    eventRepository: EventRepository,
     onboardingState: OnboardingState = OnboardingState(),
     onOnboardingStateChanged: (OnboardingState) -> Unit = {},
     modifier: Modifier = Modifier,
@@ -103,7 +105,7 @@ fun FitMeetNavHost(
                 ) { ActivityListScreen() }
             }
             composable<MapTab> { MapScreen() }
-            composable<CreateActivity> { CreateActivityScreen() }
+            composable<CreateActivity> { CreateActivityScreen(eventRepository) }
             composable<Messages> {
                 TemporaryNav(
                     "Ouvrir une conversation" to { navController.navigate(Conversation("demo-1")) },

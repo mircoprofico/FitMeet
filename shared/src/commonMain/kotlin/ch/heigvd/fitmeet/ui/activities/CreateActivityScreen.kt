@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ch.heigvd.fitmeet.data.activityCreation.EventRepository
 import ch.heigvd.fitmeet.ui.activities.CreationPages.ActivityConfirmation
 
 
@@ -27,13 +28,12 @@ val activities: Array<@Composable () -> Unit> = arrayOf(
     { ActivityDateTimeDuration() },
     { ActivityLocation() },
     { ActivityInfos() },
-    {ActivityConfirmation()}
 )
 
 @Composable
-fun CreateActivityScreen() {
-    if (currentScreen.value >= activities.size - 1) {
-        ActivityConfirmation()
+fun CreateActivityScreen(eventRepository: EventRepository) {
+    if (currentScreen.value >= activities.size) {
+        ActivityConfirmation(eventRepository)
         return
     }
 
@@ -83,6 +83,5 @@ fun CreateActivityScreen() {
         }
     }
 }
-
 
 
