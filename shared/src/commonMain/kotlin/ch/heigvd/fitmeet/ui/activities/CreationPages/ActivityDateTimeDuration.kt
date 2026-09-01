@@ -1,4 +1,5 @@
 package ch.heigvd.fitmeet.ui.activities
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -25,115 +26,164 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ch.heigvd.fitmeet.data.activityCreation.DurationPickerDialog
+import ch.heigvd.fitmeet.data.activityCreation.formatDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun ActivityDateTimeDuration() {
-MaterialTheme {
-    var selectDate by remember { mutableStateOf(false) }
-    var selectTime by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState()
-    val timePickerState = rememberTimePickerState()
+    MaterialTheme {
+        var selectDate by remember { mutableStateOf(false) }
+        var selectTime by remember { mutableStateOf(false) }
+        var selectDuration by remember { mutableStateOf(false) }
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ){
-        // current page title
-        Text(
-            "Quel jour?",
-            style = MaterialTheme.typography.headlineSmall,
-            color = Color(0xFFAAAAAA),
-            fontWeight = FontWeight.W500,
-            fontSize = 32.sp
-        )
-        Button(
-            onClick = {
-                selectDate = true
-            }
-        ){
-            Text(
-                text = if(activityData.date == null) {
-                    "Choisir une date"
-                } else {
-                    datePickerState.selectedDateMillis.toString()
-                }
-            )
-        }
-        Spacer(
-            modifier = Modifier.height(20.dp)
-        )
+        val datePickerState = rememberDatePickerState()
+        val timePickerState = rememberTimePickerState()
 
-        Text(
-            "À Quelle heure?",
-            style = MaterialTheme.typography.headlineSmall,
-            color = Color(0xFFAAAAAA),
-            fontWeight = FontWeight.W500,
-            fontSize = 32.sp
-        )
-        Button(
-            onClick = {
-                selectTime = true
-            }
-        ){
-            Text(
-                text = if(activityData.time == "") {
-                    "Choisir une heure"
-                } else {
-                    activityData.time
-                }
-            )
-        }
-    }
-    // Selection of the date
-    if(selectDate){
-        DatePickerDialog(
-            onDismissRequest = {selectDate = false},
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        selectDate = false
-                        activityData.date = datePickerState.selectedDateMillis
-                    }
-                ){
-                    Text("Ok")
-                }
-            }
-        ){
-            DatePicker(
-                state = datePickerState
-            )
-        }
-    }
-
-    if (selectTime) {
-        TimePickerDialog(
-            onDismissRequest = {
-                selectTime = false
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        // heure sous forme XX:XX
-                        activityData.time =
-                            "${timePickerState.hour.toString().padStart(2, '0')}:" +
-                             timePickerState.minute.toString().padStart(2, '0')
-                        selectTime = false
-                    }
-                ) {
-                    Text("Ok")
-                }
-            },
-            title = {
-                Text("Choisir une heure")
-            }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            TimePicker(
-                state = timePickerState
+            // Day
+            Text(
+                "Quel jour?",
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color(0xFFAAAAAA),
+                fontWeight = FontWeight.W500,
+                fontSize = 32.sp
+            )
+            Button(
+                onClick = {
+                    selectDate = true
+                }
+            ) {
+                Text(
+                    text = if (activityData.date == "") {
+                        "Choisir une date"
+                    } else {
+                        activityData.date
+                    }
+                )
+            }
+            Spacer(
+                modifier = Modifier.height(20.dp)
+            )
+
+            // Time
+            Text(
+                "À Quelle heure?",
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color(0xFFAAAAAA),
+                fontWeight = FontWeight.W500,
+                fontSize = 32.sp
+            )
+            Button(
+                onClick = {
+                    selectTime = true
+                }
+            ) {
+                Text(
+                    text = if (activityData.time == "") {
+                        "Choisir une heure"
+                    } else {
+                        activityData.time
+                    }
+                )
+            }
+
+            Spacer(
+                modifier = Modifier.height(20.dp)
+            )
+
+            // Duration
+            Text(
+                "Durée de l'activité?",
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color(0xFFAAAAAA),
+                fontWeight = FontWeight.W500,
+                fontSize = 32.sp
+            )
+            Button(
+                onClick = {
+                    selectDuration = true
+                }
+            ) {
+                Text(
+                    text = if (activityData.duration == 0) {
+                        "Choisir une durée (facultatif)"
+                    } else {
+                        "${activityData.duration} min"
+                    }
+                )
+            }
+
+
+        }
+        // Selection of the date
+        if (selectDate) {
+            DatePickerDialog(
+                onDismissRequest = { selectDate = false },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            selectDate = false
+
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                activityData.date = formatDate(millis)
+                        }
+                        }
+                    ) {
+                        Text("Ok")
+                    }
+                }
+            ) {
+                DatePicker(
+                    state = datePickerState
+                )
+            }
+        }
+
+        if (selectTime) {
+            TimePickerDialog(
+                onDismissRequest = {
+                    selectTime = false
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            // heure sous forme XX:XX
+                            activityData.time =
+                                "${timePickerState.hour.toString().padStart(2, '0')}:" +
+                                        timePickerState.minute.toString().padStart(2, '0')
+                            selectTime = false
+                        }
+                    ) {
+                        Text("Ok")
+                    }
+                },
+                title = {
+                    Text("Choisir une heure")
+                }
+            ) {
+                TimePicker(
+                    state = timePickerState
+                )
+            }
+        }
+
+        if (selectDuration) {
+            DurationPickerDialog(
+                initialDuration = activityData.duration ?: 60,
+                onDismiss = {
+                    selectDuration = false
+                },
+                onConfirm = { duration ->
+                    activityData.duration = duration
+                    selectDuration = false
+                }
             )
         }
     }
-}
 }
 
 
