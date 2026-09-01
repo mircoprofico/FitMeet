@@ -28,6 +28,12 @@ fun BottomBar(
     navController: NavHostController,
     currentDestination: NavDestination?,
 ) {
+
+    // We shouldn't see the navBar if we are creating a new activity
+    if (currentDestination?.hierarchy?.any { it.hasRoute(CreateActivity::class) } == true) {
+        return
+    }
+
     NavigationBar {
         tabs.forEach { tab ->
             val selected = currentDestination
