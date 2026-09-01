@@ -4,22 +4,27 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import ch.heigvd.fitmeet.data.messages.ConversationMessage
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
+import kotlinx.coroutines.launch
 
 @Composable
 fun ConversationScreen(
@@ -43,6 +49,9 @@ fun ConversationScreen(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val currentUserId = conversationRepository.currentUserId()
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+
 
     LaunchedEffect(conversationRepository, conversationId) {
         conversationRepository.getMessages(conversationId)
@@ -56,9 +65,16 @@ fun ConversationScreen(
         isLoading = false
     }
 
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.scrollToItem(messages.lastIndex)
+        }
+    }
     val backgroundColor = Color(0xFFDDDDDD)
     val separationColor = Color(0xFFBBBBBB)
     val textColor = Color(0xFF102E53)
+    var currentMessage by remember { mutableStateOf("") }
+
 
     MaterialTheme {
         Column(
@@ -90,8 +106,9 @@ fun ConversationScreen(
                     Button(onClick = { navController.popBackStack() }) {
                         Text("Retour")
                     }
+
                     Text(
-                        text = "Conversation",
+                        text = conversationId,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.W900,
                         color = textColor,
@@ -109,6 +126,7 @@ fun ConversationScreen(
                 )
                 messages.isEmpty() -> Text("Aucun message.", modifier = Modifier.padding(24.dp))
                 else -> LazyColumn(
+                    state = listState,
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
@@ -142,6 +160,51 @@ fun ConversationScreen(
                             }
                         }
                     }
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextField(
+                    value = currentMessage,
+                    onValueChange = { currentMessage = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = {
+                        Text("Écrire un message...")
+                    }
+                )
+
+                Spacer(modifier = Modifier.width(8.dp).weight(1f))
+
+                Button(
+                    onClick = {
+                        if (currentUserId != null && currentMessage.isNotBlank()) {
+                            scope.launch {
+                                val result = conversationRepository.sendMessage(
+                                    senderUserId = currentUserId,
+                                    conversationId = conversationId,
+                                    content = currentMessage,
+                                )
+
+                                if (result.isSuccess) {
+                                    currentMessage = ""
+
+                                    conversationRepository.getMessages(conversationId)
+                                        .onSuccess {
+                                            messages = it
+                                        }
+                                } else {
+                                    errorMessage = result.message
+                                }
+                            }
+                        }
+                    }
+                ) {
+                    Text(">")
                 }
             }
         }
