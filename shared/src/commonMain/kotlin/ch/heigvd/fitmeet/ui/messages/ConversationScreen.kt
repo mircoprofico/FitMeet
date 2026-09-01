@@ -154,11 +154,21 @@ fun ConversationScreen(
                                     )
                                     .padding(horizontal = 16.dp, vertical = 10.dp),
                             ) {
-                                Text(
-                                    text = message.content,
-                                    color = if (isMine) Color.White else Color.Black,
-                                    fontSize = 20.sp,
-                                )
+                                Row() {
+                                    if(!isMine){
+                                        Text(
+                                            text = message.senderId,
+                                            color = Color(0xFF999999),
+                                            fontSize = 10.sp,
+                                        )
+
+                                    }
+                                    Text(
+                                        text = message.content,
+                                        color = if (isMine) Color.White else Color.Black,
+                                        fontSize = 20.sp,
+                                    )
+                                }
                             }
                         }
                     }
