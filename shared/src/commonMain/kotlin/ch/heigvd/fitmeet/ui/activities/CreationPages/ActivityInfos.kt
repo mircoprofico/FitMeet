@@ -15,6 +15,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -86,31 +87,47 @@ fun ActivityInfos() {
                         if(activityData.difficulty == Level.BEGINNER)
                             Modifier
                         else
-                            Modifier.background(deactivatedChipBgColor)
-                    ).
-                        clickable(onClick = {activityData.difficulty = Level.BEGINNER})
-
+                            Modifier.alpha(0.5f) //todo opacity
+                    ).clickable(onClick = {activityData.difficulty = Level.BEGINNER})
                     )
                 Spacer(modifier = Modifier.width(10.dp))
                 LevelChip(
                     level = Level.INTERMEDIATE,
-                    modifier = Modifier.
-                    clickable(onClick = {activityData.difficulty = Level.INTERMEDIATE})
+                    modifier = Modifier
+                    .then(
+                            if(activityData.difficulty == Level.INTERMEDIATE)
+                                Modifier
+                            else
+                                Modifier.alpha(0.5f) //todo opacity
+                            )
+                    .clickable(onClick = {activityData.difficulty = Level.INTERMEDIATE})
                 )
 
                 Spacer(modifier = Modifier.width(10.dp))
 
                 LevelChip(
                     level = Level.ADVANCED,
-                    modifier = Modifier.
-                    clickable(onClick = {activityData.difficulty = Level.ADVANCED})
+                    modifier = Modifier
+                        .then(
+                        if(activityData.difficulty == Level.ADVANCED)
+                            Modifier
+                        else
+                            Modifier.alpha(0.5f) //todo opacity
+                    )
+                        .clickable(onClick = {activityData.difficulty = Level.ADVANCED})
                 )
             }
             Spacer(modifier = Modifier.height(10.dp))
             LevelChip(
                 level = Level.ALL,
-                modifier = Modifier.
-                clickable(onClick = {activityData.difficulty = Level.ALL})
+                modifier = Modifier
+                    .then(
+                    if(activityData.difficulty == Level.ALL)
+                        Modifier
+                    else
+                        Modifier.alpha(0.5f) //todo opacity
+                )
+                    .clickable(onClick = {activityData.difficulty = Level.ALL})
             )
         }
     }
