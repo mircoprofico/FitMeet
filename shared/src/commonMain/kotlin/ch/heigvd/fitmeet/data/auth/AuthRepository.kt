@@ -11,6 +11,7 @@ data class AuthActionResult(val isSuccess: Boolean, val message: String)
 interface AuthRepository {
     suspend fun signIn(email: String, password: String): AuthActionResult
     suspend fun signUp(email: String, password: String): AuthActionResult
+    suspend fun signOut(): AuthActionResult
     suspend fun requestPasswordReset(email: String): AuthActionResult
     suspend fun handleAuthenticationCallback(url: String): AuthActionResult
 }
@@ -32,6 +33,11 @@ class SupabaseAuthRepository internal constructor(
             this.password = password
         }
         AuthActionResult(true, "Compte créé. Vérifiez votre e-mail avant de vous connecter.")
+    }.getOrElse(::authFailure)
+
+    override suspend fun signOut(): AuthActionResult = runCatching {
+        supabase.auth.signOut()
+        AuthActionResult(true, "Déconnexion réussie.")
     }.getOrElse(::authFailure)
 
     override suspend fun requestPasswordReset(email: String): AuthActionResult = runCatching {
@@ -59,6 +65,7 @@ fun createSupabaseAuthRepository(
 object PreviewAuthRepository : AuthRepository {
     override suspend fun signIn(email: String, password: String) = AuthActionResult(true, "Aperçu : connexion simulée.")
     override suspend fun signUp(email: String, password: String) = AuthActionResult(true, "Aperçu : compte simulé.")
+    override suspend fun signOut() = AuthActionResult(true, "Aperçu : déconnexion simulée.")
     override suspend fun requestPasswordReset(email: String) = AuthActionResult(true, "Aperçu : e-mail simulé.")
     override suspend fun handleAuthenticationCallback(url: String) = AuthActionResult(true, "Aperçu : e-mail confirmé.")
 }
@@ -67,6 +74,7 @@ object UnconfiguredAuthRepository : AuthRepository {
     private const val message = "Supabase n'est pas configuré. Ajoutez les clés dans local.properties."
     override suspend fun signIn(email: String, password: String) = AuthActionResult(false, message)
     override suspend fun signUp(email: String, password: String) = AuthActionResult(false, message)
+    override suspend fun signOut() = AuthActionResult(true, "Déconnexion (hors ligne).")
     override suspend fun requestPasswordReset(email: String) = AuthActionResult(false, message)
     override suspend fun handleAuthenticationCallback(url: String) = AuthActionResult(false, message)
 }

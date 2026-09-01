@@ -23,6 +23,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +50,7 @@ private val ColorCardBackground = Color(0xFFF5F5F5)
 fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel(),
     onEditProfile: () -> Unit = {},
+    onSignOut: suspend () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     when (val state = uiState) {
@@ -55,12 +58,20 @@ fun ProfileScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) { CircularProgressIndicator(color = ColorPrimary) }
-        is ProfileUiState.Success -> ProfileContent(profile = state.profile, onEditProfile = onEditProfile)
+        is ProfileUiState.Success -> ProfileContent(
+            profile = state.profile,
+            onEditProfile = onEditProfile,
+            onSignOut = onSignOut,
+        )
     }
 }
 
 @Composable
-private fun ProfileContent(profile: UserProfile, onEditProfile: () -> Unit = {}) {
+private fun ProfileContent(
+    profile: UserProfile,
+    onEditProfile: () -> Unit = {},
+    onSignOut: suspend () -> Unit = {},
+) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -75,7 +86,7 @@ private fun ProfileContent(profile: UserProfile, onEditProfile: () -> Unit = {})
             SportsSection(profile.sports)
             HorizontalDivider()
             StatsSection(profile.activitiesCreated, profile.activitiesJoined)
-            SignOutButton()
+            SignOutButton(onSignOut)
             Spacer(Modifier.height(16.dp))
         }
         androidx.compose.material3.TextButton(
@@ -189,9 +200,10 @@ private fun StatCard(label: String, value: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SignOutButton() {
+private fun SignOutButton(onSignOut: suspend () -> Unit) {
+    val scope = rememberCoroutineScope()
     OutlinedButton(
-        onClick = {},
+        onClick = { scope.launch { onSignOut() } },
         modifier = Modifier.fillMaxWidth(),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = ColorDanger),
         border = BorderStroke(1.dp, ColorDanger),

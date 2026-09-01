@@ -82,7 +82,14 @@ fun FitMeetNavHost(
             composable<Profile> { entry ->
                 val parentEntry = remember(entry) { navController.getBackStackEntry<MainGraph>() }
                 val viewModel: ProfileViewModel = viewModel(parentEntry)
-                ProfileScreen(viewModel = viewModel, onEditProfile = { navController.navigate(EditProfile) })
+                ProfileScreen(
+                    viewModel = viewModel,
+                    onEditProfile = { navController.navigate(EditProfile) },
+                    onSignOut = {
+                        authRepository.signOut()
+                        navController.leaveApp()
+                    },
+                )
             }
             composable<EditProfile> { entry ->
                 val parentEntry = remember(entry) { navController.getBackStackEntry<MainGraph>() }
@@ -130,5 +137,11 @@ private fun TemporaryNav(
 private fun NavHostController.enterApp() {
     navigate(MainGraph) {
         popUpTo(AuthGraph) { inclusive = true }
+    }
+}
+
+private fun NavHostController.leaveApp() {
+    navigate(AuthGraph) {
+        popUpTo(MainGraph) { inclusive = true }
     }
 }
