@@ -15,6 +15,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import ch.heigvd.fitmeet.data.activityCreation.EventRepository
 import ch.heigvd.fitmeet.ui.activities.activityData
 import ch.heigvd.fitmeet.ui.activities.currentScreen
@@ -24,6 +25,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ActivityConfirmation(
     eventRepository: EventRepository,
+    navController: NavController
 ) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isSaving by remember { mutableStateOf(false) }
@@ -63,10 +65,15 @@ fun ActivityConfirmation(
                             name = activityData.name,
                             description = activityData.description,
                             difficulty = activityData.difficulty.label,
+                            capacity = activityData.capacity
                         ).onSuccess {
                             errorMessage = null
                             activityData.reset()
-                            currentScreen.value = 0
+                            navController.navigate("activities") {
+                                popUpTo("createActivity") {
+                                    inclusive = true
+                                }
+                            }
                         }.onFailure {
                             errorMessage = it.message ?: "L'activité n'a pas pu être créée."
                         }

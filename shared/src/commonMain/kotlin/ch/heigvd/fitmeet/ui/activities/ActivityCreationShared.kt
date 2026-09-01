@@ -13,10 +13,12 @@ class ActivityData {
     var time by mutableStateOf("")
     var duration by mutableStateOf(0)
 
-    var position by mutableStateOf("POINT(0.0000, 0.0000)")
+    var position by mutableStateOf("")
     var name by mutableStateOf("")
     var description by mutableStateOf("")
     var difficulty by mutableStateOf(Level.ALL)
+
+    var capacity by mutableStateOf(2)
 }
 
 var activityData = ActivityData()
@@ -26,9 +28,10 @@ fun ActivityData.reset() {
     date = ""
     time = ""
     duration = 0
-    position = "POINT(0.0000, 0.0000)"
+    position = ""
     name = ""
     description = ""
     difficulty = Level.ALL
+    capacity = 2
 }
 

@@ -3,6 +3,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -51,7 +54,7 @@ fun ActivityType() {
         /** Activities */
         LazyVerticalGrid(
             columns = GridCells.Fixed(3) , // show activities on 3 columns
-            modifier = Modifier.fillMaxWidth().weight(1f)
+            modifier = Modifier.fillMaxWidth()
         ){
             items(Sport.entries){sport ->
                 Button(
@@ -65,6 +68,7 @@ fun ActivityType() {
                         disabledContentColor = Color(0xFFFFFFFF),
                         contentColor = Color(0xFF999999)
                     ),
+                    contentPadding = PaddingValues(5.dp)
                     ){
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -87,6 +91,32 @@ fun ActivityType() {
                     }
                 }
             }
+        }
+
+        Spacer(Modifier.height(20.dp))
+        Text(
+            "Combien de personnes peuvent rejoindre?",
+            color = Color(0xFFAAAAAA),
+            fontWeight = FontWeight.W500,
+            fontSize = 16.sp
+        )
+        Row(){
+            Spacer(Modifier.width(10.dp))
+            Slider(
+                value = activityData.capacity.toFloat(),
+                onValueChange = {activityData.capacity = it.toInt()},
+                valueRange = 2f..10f,
+                steps = 7,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = activityData.capacity.toString(),
+                color = Color(0xFFAAAAAA),
+                fontWeight = FontWeight.W900,
+                fontSize = 32.sp
+            )
+            Spacer(Modifier.width(10.dp))
         }
     }
 }
