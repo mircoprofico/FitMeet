@@ -12,11 +12,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import org.maplibre.android.MapLibre
+import org.maplibre.android.annotations.Marker
+import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapLibreMap
@@ -27,15 +30,32 @@ private const val STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"
 private const val DEFAULT_ZOOM = 15.0
 
 @Composable
-actual fun PlatformMap(latitude: Double, longitude: Double, modifier: Modifier) {
+actual fun PlatformMap(
+    latitude: Double,
+    longitude: Double,
+    modifier: Modifier,
+    onMapClick: ((Double, Double) -> Unit)?,
+    selectedLat: Double?,
+    selectedLng: Double?,
+) {
     val context = LocalContext.current
     var mapRef by remember { mutableStateOf<MapLibreMap?>(null) }
     val mapViewRef = remember { mutableStateOf<MapView?>(null) }
+    var selectedMarker by remember { mutableStateOf<Marker?>(null) }
+    val currentOnMapClick by rememberUpdatedState(onMapClick)
 
     LaunchedEffect(latitude, longitude) {
         mapRef?.animateCamera(
             CameraUpdateFactory.newLatLngZoom(LatLng(latitude, longitude), DEFAULT_ZOOM)
         )
+    }
+
+    LaunchedEffect(selectedLat, selectedLng, mapRef) {
+        val map = mapRef ?: return@LaunchedEffect
+        selectedMarker?.let { map.removeMarker(it) }
+        selectedMarker = if (selectedLat != null && selectedLng != null) {
+            map.addMarker(MarkerOptions().position(LatLng(selectedLat, selectedLng)))
+        } else null
     }
 
     AndroidView(
@@ -54,6 +74,10 @@ actual fun PlatformMap(latitude: Double, longitude: Double, modifier: Modifier) 
                                 LatLng(latitude, longitude), DEFAULT_ZOOM
                             )
                         )
+                    }
+                    map.addOnMapClickListener { latLng ->
+                        currentOnMapClick?.invoke(latLng.latitude, latLng.longitude)
+                        true
                     }
                 }
             }

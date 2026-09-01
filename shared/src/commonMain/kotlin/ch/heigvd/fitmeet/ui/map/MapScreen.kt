@@ -12,7 +12,11 @@ private const val DEFAULT_LAT = 46.5197
 private const val DEFAULT_LNG = 6.6323
 
 @Composable
-fun MapScreen() {
+fun MapScreen(
+    onMapClick: ((Double, Double) -> Unit)? = null,
+    selectedLat: Double? = null,
+    selectedLng: Double? = null,
+) {
     var latitude by remember { mutableStateOf(DEFAULT_LAT) }
     var longitude by remember { mutableStateOf(DEFAULT_LNG) }
 
@@ -25,11 +29,21 @@ fun MapScreen() {
         latitude = latitude,
         longitude = longitude,
         modifier = Modifier.fillMaxSize(),
+        onMapClick = onMapClick,
+        selectedLat = selectedLat,
+        selectedLng = selectedLng,
     )
 }
 
 @Composable
-expect fun PlatformMap(latitude: Double, longitude: Double, modifier: Modifier)
+expect fun PlatformMap(
+    latitude: Double,
+    longitude: Double,
+    modifier: Modifier,
+    onMapClick: ((Double, Double) -> Unit)? = null,
+    selectedLat: Double? = null,
+    selectedLng: Double? = null,
+)
 
 @Composable
 expect fun LocationEffect(onLocation: (Double, Double) -> Unit)
