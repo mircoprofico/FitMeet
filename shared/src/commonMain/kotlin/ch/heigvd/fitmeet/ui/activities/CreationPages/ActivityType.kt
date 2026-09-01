@@ -3,6 +3,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -65,6 +66,7 @@ fun ActivityType() {
                         disabledContentColor = Color(0xFFFFFFFF),
                         contentColor = Color(0xFF999999)
                     ),
+                    contentPadding = PaddingValues(5.dp)
                     ){
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
