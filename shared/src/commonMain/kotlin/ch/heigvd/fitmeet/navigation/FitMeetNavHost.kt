@@ -105,7 +105,7 @@ fun FitMeetNavHost(
                 ) { ActivityListScreen() }
             }
             composable<MapTab> { MapScreen() }
-            composable<CreateActivity> { CreateActivityScreen(eventRepository) }
+            composable<CreateActivity> { CreateActivityScreen(eventRepository, navController) }
             composable<Messages> {
                 TemporaryNav(
                     "Ouvrir une conversation" to { navController.navigate(Conversation("demo-1")) },

@@ -3,9 +3,11 @@ package ch.heigvd.fitmeet.ui.activities
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -19,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import ch.heigvd.fitmeet.data.activityCreation.EventRepository
 import ch.heigvd.fitmeet.ui.activities.CreationPages.ActivityConfirmation
 
@@ -31,9 +34,15 @@ val activities: Array<@Composable () -> Unit> = arrayOf(
 )
 
 @Composable
-fun CreateActivityScreen(eventRepository: EventRepository) {
+fun CreateActivityScreen(
+    eventRepository: EventRepository,
+    navController: NavController
+) {
     if (currentScreen.value >= activities.size) {
-        ActivityConfirmation(eventRepository)
+        ActivityConfirmation(
+            eventRepository = eventRepository,
+            navController = navController
+        )
         return
     }
 
@@ -48,7 +57,7 @@ fun CreateActivityScreen(eventRepository: EventRepository) {
                     disabledContainerColor = Color(0xFF888888)
                 ),
                 shape = RoundedCornerShape(6.dp),
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(16.dp).fillMaxWidth()
             ) {
 
                 Text(
