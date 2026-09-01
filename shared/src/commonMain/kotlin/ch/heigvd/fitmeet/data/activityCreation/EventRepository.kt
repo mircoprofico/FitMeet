@@ -37,7 +37,7 @@ private data class NewEvent(
     @SerialName("location_name") val locationName: String,
     val location: String,
     val level: String,
-    val capacity: Int = 12,
+    val capacity: Int,
     @SerialName("price_chf") val priceChf: Double = 0.0,
 )
 
@@ -76,6 +76,7 @@ class SupabaseEventRepository(
                 locationName = "Position choisie",
                 location = position,
                 level = levelSlug(difficulty),
+                capacity = 12,
             ),
         )
     }
