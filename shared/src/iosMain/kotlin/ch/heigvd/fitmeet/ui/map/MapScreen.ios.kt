@@ -8,7 +8,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-actual fun PlatformMap(latitude: Double, longitude: Double, modifier: Modifier) {
+actual fun PlatformMap(
+    latitude: Double,
+    longitude: Double,
+    modifier: Modifier,
+    onMapClick: ((Double, Double) -> Unit)?,
+    selectedLat: Double?,
+    selectedLng: Double?,
+) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Text("Carte iOS à implémenter (MapLibre iOS pod requis)")
     }
