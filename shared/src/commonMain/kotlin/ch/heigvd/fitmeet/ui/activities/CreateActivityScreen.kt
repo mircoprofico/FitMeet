@@ -22,16 +22,16 @@ import androidx.compose.ui.unit.sp
 
 
 val activities: Array<@Composable () -> Unit> = arrayOf(
-    { ActivityType()},
-    { ActivityDateTimeDuration()},
-    { ActivityLocation()},
-    { ActivityInfos()},
-    { RESULTDELETEME()}
+    { ActivityType() },
+    { ActivityDateTimeDuration() },
+    { ActivityLocation() },
+    { ActivityInfos() },
+    { RESULTDELETEME() }
 )
 
 @Composable
 fun CreateActivityScreen() {
-    if(currentScreen.value >= activities.size - 1){
+    if (currentScreen.value >= activities.size - 1) {
         RESULTDELETEME()
         return
     }
@@ -66,7 +66,7 @@ fun CreateActivityScreen() {
                 .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
             Text(
                 "Nouvelle Activité",
@@ -75,7 +75,7 @@ fun CreateActivityScreen() {
                 fontSize = 40.sp
             )
 
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             // Page-specific content
             activities[currentScreen.value]()

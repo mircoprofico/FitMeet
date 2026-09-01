@@ -57,7 +57,7 @@ fun ActivityType() {
                 Button(
                     onClick = {activityData.type = sport.label},
                     enabled = (activityData.type != sport.label),
-                    modifier = Modifier.width(100.dp).height(120.dp).padding(5.dp),
+                    modifier = Modifier.fillMaxWidth().height(120.dp).padding(5.dp),
                     shape = RoundedCornerShape(6.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF555555),
@@ -66,15 +66,25 @@ fun ActivityType() {
                         contentColor = Color(0xFF999999)
                     ),
                     ){
-                    Image(
-                        painter = painterResource(sport.icon),
-                        contentDescription = sport.label,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .alpha(if (activityData.type == sport.label) 1f else 0.6f),
-                        contentScale = ContentScale.Fit
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            painter = painterResource(sport.icon),
+                            contentDescription = sport.label,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .alpha(if (activityData.type == sport.label) 1f else 0.6f),
+                            contentScale = ContentScale.Fit
+                        )
+                        Text(
+                            sport.label,
+                            maxLines = 1,
+                            softWrap = false,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
         }
