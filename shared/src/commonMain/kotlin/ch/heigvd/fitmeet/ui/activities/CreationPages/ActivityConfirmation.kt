@@ -63,6 +63,7 @@ fun ActivityConfirmation(
                             name = activityData.name,
                             description = activityData.description,
                             difficulty = activityData.difficulty.label,
+                            capacity = activityData.capacity
                         ).onSuccess {
                             errorMessage = null
                             activityData.reset()

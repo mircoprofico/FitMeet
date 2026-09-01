@@ -23,6 +23,7 @@ interface EventRepository {
         name: String,
         description: String,
         difficulty: String,
+        capacity: Int
     ): Result<Unit>
 }
 
@@ -53,6 +54,7 @@ class SupabaseEventRepository(
         name: String,
         description: String,
         difficulty: String,
+        capacity: Int,
     ): Result<Unit> = runCatching {
         val userId = supabase.auth.currentUserOrNull()?.id
             ?: error("Votre session a expiré. Reconnectez-vous.")
@@ -125,6 +127,7 @@ object PreviewEventRepository : EventRepository {
         name: String,
         description: String,
         difficulty: String,
+        capacity: Int,
     ) = Result.success(Unit)
 }
 
@@ -138,5 +141,6 @@ object UnconfiguredEventRepository : EventRepository {
         name: String,
         description: String,
         difficulty: String,
+        capacity: Int,
     ) = Result.failure<Unit>(IllegalStateException("Supabase n'est pas configuré."))
 }
