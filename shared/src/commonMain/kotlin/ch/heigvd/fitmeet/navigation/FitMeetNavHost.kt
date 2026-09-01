@@ -108,7 +108,7 @@ fun FitMeetNavHost(
             composable<CreateActivity> { CreateActivityScreen(eventRepository, navController) }
             composable<Messages> {
                 TemporaryNav(
-                    "Ouvrir une conversation" to { navController.navigate(Conversation("demo-1")) },
+                    "Ouvrir une conversation" to { navController.navigate(Conversation("demo-1", "demo")) },
                 ) {
                     ConversationListScreen(
                         navController = navController,
@@ -142,8 +142,10 @@ fun FitMeetNavHost(
                 ActivityDetailScreen(activityId = entry.toRoute<ActivityDetail>().activityId)
             }
             composable<Conversation> { entry ->
+                val conversation = entry.toRoute<Conversation>()
                 ConversationScreen(
-                    conversationId = entry.toRoute<Conversation>().conversationId,
+                    conversationId = conversation.conversationId,
+                    conversationTitle = conversation.conversationTitle,
                     navController = navController,
                     conversationRepository = conversationRepository,
                 )

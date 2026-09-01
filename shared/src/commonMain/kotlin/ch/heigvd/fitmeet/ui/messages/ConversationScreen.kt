@@ -37,11 +37,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import ch.heigvd.fitmeet.data.messages.ConversationMessage
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
+import ch.heigvd.fitmeet.navigation.Conversation
 import kotlinx.coroutines.launch
 
 @Composable
 fun ConversationScreen(
     conversationId: String = "",
+    conversationTitle: String = "",
     navController: NavHostController,
     conversationRepository: ConversationRepository,
 ) {
@@ -108,7 +110,7 @@ fun ConversationScreen(
                     }
 
                     Text(
-                        text = conversationId,
+                        text = conversationTitle,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.W900,
                         color = textColor,
