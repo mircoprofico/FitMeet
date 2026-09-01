@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -37,7 +39,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import ch.heigvd.fitmeet.data.messages.ConversationMessage
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
+import ch.heigvd.fitmeet.navigation.ActivityList
 import ch.heigvd.fitmeet.navigation.Conversation
+import ch.heigvd.fitmeet.ui.activities.activityData
+import ch.heigvd.fitmeet.ui.activities.reset
 import kotlinx.coroutines.launch
 
 @Composable
@@ -105,9 +110,23 @@ fun ConversationScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(10.dp, 0.dp),
                 ) {
-                    Button(onClick = { navController.popBackStack() }) {
-                        Text("Retour")
+
+                    Button(
+                        onClick = { navController.popBackStack() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFF0000),
+                        ),
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            "X",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.W900,
+                            color = Color(0xFFFFFFFF)
+                        )
                     }
+
 
                     Text(
                         text = conversationTitle,
@@ -154,7 +173,7 @@ fun ConversationScreen(
                                     )
                                     .padding(horizontal = 16.dp, vertical = 10.dp),
                             ) {
-                                Row() {
+                                Column() {
                                     if(!isMine){
                                         Text(
                                             text = message.senderId,
@@ -175,11 +194,9 @@ fun ConversationScreen(
                 }
             }
 
-
             /**
              * Input part
              * */
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
