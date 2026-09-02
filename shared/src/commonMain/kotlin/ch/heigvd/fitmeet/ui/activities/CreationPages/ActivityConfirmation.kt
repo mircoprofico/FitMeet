@@ -16,6 +16,7 @@
     import androidx.compose.foundation.shape.RoundedCornerShape
     import androidx.compose.material3.Button
     import androidx.compose.material3.ButtonDefaults
+    import androidx.compose.material3.IconButton
     import androidx.compose.material3.MaterialTheme
     import androidx.compose.material3.Text
     import androidx.compose.runtime.Composable
@@ -61,10 +62,35 @@
             Column(
                 modifier = Modifier
                     .background(Navy)
-                    .safeContentPadding()
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                IconButton(
+                    onClick = {
+                        activityData.reset()
+                        navController.navigate(ActivityList) {
+                            launchSingleTop = true
+                            popUpTo(MainGraph) {
+                                inclusive = false
+                            }
+                        }
+                        currentScreen.value = 0
+                              },
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .size(40.dp)
+                        .background(Color(0xFFFF0000))
+                        .align(Alignment.Start)
+                ) {
+                    Text(
+                        "X",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.W900,
+                        fontSize = 18.sp,
+                        color = Color(0xFFFFFFFF)
+                    )
+                }
                 Spacer(
                     modifier = Modifier.height(50.dp)
                 )

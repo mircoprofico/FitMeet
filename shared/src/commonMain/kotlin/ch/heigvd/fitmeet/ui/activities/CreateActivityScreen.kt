@@ -92,8 +92,6 @@ fun CreateActivityScreen(
             IconButton(
                 onClick = {
                     activityData.reset()
-                    currentScreen.value = 0
-
                     navController.navigate(ActivityList) {
                         launchSingleTop = true
                         popUpTo(MainGraph) {

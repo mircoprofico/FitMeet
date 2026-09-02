@@ -3,6 +3,8 @@ package ch.heigvd.fitmeet.ui.activities
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import ch.heigvd.fitmeet.navigation.ActivityList
+import ch.heigvd.fitmeet.navigation.MainGraph
 import ch.heigvd.fitmeet.ui.theme.Level
 import ch.heigvd.fitmeet.ui.theme.Sport
 
