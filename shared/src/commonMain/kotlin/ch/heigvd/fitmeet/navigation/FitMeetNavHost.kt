@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -12,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
+import ch.heigvd.fitmeet.data.activities.ActivityRepository
 import ch.heigvd.fitmeet.data.auth.AuthRepository
 import ch.heigvd.fitmeet.data.activityCreation.EventRepository
 import ch.heigvd.fitmeet.data.profile.OnboardingState
@@ -19,6 +23,7 @@ import ch.heigvd.fitmeet.data.profile.ProfileRepository
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
 import ch.heigvd.fitmeet.ui.activities.ActivityDetailScreen
 import ch.heigvd.fitmeet.ui.activities.ActivityListScreen
+import ch.heigvd.fitmeet.ui.activities.ActivityListViewModel
 import ch.heigvd.fitmeet.ui.activities.CreateActivityScreen
 import ch.heigvd.fitmeet.ui.auth.LoginScreen
 import ch.heigvd.fitmeet.ui.auth.OnboardingScreen
@@ -43,6 +48,7 @@ fun FitMeetNavHost(
     profileRepository: ProfileRepository,
     conversationRepository: ConversationRepository,
     eventRepository: EventRepository,
+    activityRepository: ActivityRepository,
     onboardingState: OnboardingState = OnboardingState(),
     onOnboardingStateChanged: (OnboardingState) -> Unit = {},
     modifier: Modifier = Modifier,
@@ -100,9 +106,15 @@ fun FitMeetNavHost(
 
         navigation<MainGraph>(startDestination = ActivityList) {
             composable<ActivityList> {
-                TemporaryNav(
-                    "Ouvrir une activite" to { navController.navigate(ActivityDetail("demo-1")) },
-                ) { ActivityListScreen() }
+                // the view model is remembered per destination, so leaving the
+                // tab and coming back does not fire a new request
+                val viewModel = remember { ActivityListViewModel(activityRepository) }
+                val state by viewModel.uiState.collectAsState()
+                ActivityListScreen(
+                    state = state,
+                    onActivityClick = { id -> navController.navigate(ActivityDetail(id)) },
+                    onRetry = viewModel::refresh,
+                )
             }
             composable<MapTab> { MapScreen() }
             composable<CreateActivity> { CreateActivityScreen(eventRepository, navController) }

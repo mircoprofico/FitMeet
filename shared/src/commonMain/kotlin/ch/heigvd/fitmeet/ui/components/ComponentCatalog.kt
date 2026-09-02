@@ -34,7 +34,6 @@ fun ComponentCatalog(modifier: Modifier = Modifier) {
         Section("Level chips")
         Row(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.padding(horizontal = 16.dp),
         ) {
             Level.entries.forEach { LevelChip(it) }
         }
@@ -44,7 +43,6 @@ fun ComponentCatalog(modifier: Modifier = Modifier) {
         // here on its own
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.padding(horizontal = 16.dp),
         ) {
             Sport.entries.forEach { SportChip(it) }
         }
@@ -52,15 +50,12 @@ fun ComponentCatalog(modifier: Modifier = Modifier) {
         Section("Avatar stack")
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(horizontal = 16.dp),
         ) {
             AvatarStack(count = 8)
             AvatarStack(count = 3)
             AvatarStack(count = 1)
         }
 
-        // cards go edge to edge on purpose: that is their real width in the
-        // list, showing them padded here would be misleading
         Section("Activity card")
         ActivityCard(
             title = "Match de Foot",
@@ -87,12 +82,12 @@ fun ComponentCatalog(modifier: Modifier = Modifier) {
         )
 
         Section("Empty state")
-        Column(Modifier.height(120.dp).padding(horizontal = 16.dp)) {
+        Column(Modifier.height(120.dp)) {
             EmptyState("Aucune activité près de vous")
         }
 
         Section("Error state")
-        Column(Modifier.height(160.dp).padding(horizontal = 16.dp)) {
+        Column(Modifier.height(160.dp)) {
             ErrorState(
                 message = "Impossible de charger les activités",
                 onRetry = {},
@@ -105,7 +100,7 @@ fun ComponentCatalog(modifier: Modifier = Modifier) {
 @Composable
 private fun Section(title: String) {
     Column(
-        modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+        modifier = Modifier.padding(top = 8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(title, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFF6B7C74))

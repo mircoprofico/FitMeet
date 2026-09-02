@@ -1,5 +1,8 @@
 package ch.heigvd.fitmeet.data
 
+import ch.heigvd.fitmeet.data.activities.ActivityRepository
+import ch.heigvd.fitmeet.data.activities.PreviewActivityRepository
+import ch.heigvd.fitmeet.data.activities.SupabaseActivityRepository
 import ch.heigvd.fitmeet.data.auth.AuthRepository
 import ch.heigvd.fitmeet.data.auth.SupabaseAuthRepository
 import ch.heigvd.fitmeet.data.auth.UnconfiguredAuthRepository
@@ -19,6 +22,7 @@ data class FitMeetRepositories(
     val profileRepository: ProfileRepository,
     val conversationRepository: ConversationRepository,
     val eventRepository: EventRepository,
+    val activityRepository: ActivityRepository,
 )
 
 fun createFitMeetRepositories(
@@ -31,6 +35,7 @@ fun createFitMeetRepositories(
         profileRepository = SupabaseProfileRepository(supabase),
         conversationRepository = SupabaseConversationRepository(supabase),
         eventRepository = SupabaseEventRepository(supabase),
+        activityRepository = SupabaseActivityRepository(supabase),
     )
 }
 
@@ -39,4 +44,6 @@ fun createUnconfiguredFitMeetRepositories() = FitMeetRepositories(
     profileRepository = UnconfiguredProfileRepository,
     conversationRepository = UnconfiguredConversationRepository,
     eventRepository = UnconfiguredEventRepository,
+    // no network configured: fall back on the sample list
+    activityRepository = PreviewActivityRepository,
 )
