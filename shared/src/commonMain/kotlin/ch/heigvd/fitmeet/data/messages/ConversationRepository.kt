@@ -5,12 +5,21 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.realtime.channel
+import io.github.jan.supabase.realtime.decodeRecord
+import io.github.jan.supabase.realtime.postgresChangeFlow
+import io.github.jan.supabase.realtime.realtime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.putJsonArray
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 
 @Serializable
 data class ConversationSummary(
@@ -50,6 +59,7 @@ private data class NewConversationMessage(
 interface ConversationRepository {
     suspend fun getAccessibleConversations(): Result<List<ConversationSummary>>
     suspend fun getMessages(conversationId: String): Result<List<ConversationMessage>>
+    fun observeMessages(conversationId: String): Flow<ConversationMessage>
     suspend fun sendMessage(
         senderUserId: String,
         conversationId: String,
@@ -77,22 +87,29 @@ class SupabaseConversationRepository internal constructor(
             filter { eq("conversation_id", conversationId) }
         }.decodeList<ConversationMessage>().sortedBy(ConversationMessage::createdAt)
 
-        val senderIds = messages.map(ConversationMessage::senderId).distinct()
-        val missingSenderIds = senderIds.filterNot(profileNamesCache::containsKey)
-        if (missingSenderIds.isNotEmpty()) {
-            val fetchedNames = supabase.postgrest
-                .rpc("public_profile_names", buildJsonObject {
-                    putJsonArray("p_ids") {
-                        missingSenderIds.forEach { add(JsonPrimitive(it)) }
-                    }
-                })
-                .decodeList<PublicProfileName>()
-                .associate { it.id to it.displayName }
-            profileNamesCache.putAll(fetchedNames)
-        }
+        loadMissingProfileNames(messages.map(ConversationMessage::senderId))
 
         messages.map { message ->
             message.copy(senderName = profileNamesCache[message.senderId])
+        }
+    }
+
+    override fun observeMessages(conversationId: String): Flow<ConversationMessage> = flow {
+        val channel = supabase.channel("conversation-$conversationId")
+        try {
+            val changes = channel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
+                table = "conversation_messages"
+                filter("conversation_id", FilterOperator.EQ, conversationId)
+            }
+            channel.subscribe()
+
+            changes.collect { action ->
+                val message = action.decodeRecord<ConversationMessage>()
+                loadMissingProfileNames(listOf(message.senderId))
+                emit(message.copy(senderName = profileNamesCache[message.senderId]))
+            }
+        } finally {
+            supabase.realtime.removeChannel(channel)
         }
     }
 
@@ -125,6 +142,21 @@ class SupabaseConversationRepository internal constructor(
     }
 
     override fun currentUserId(): String? = supabase.auth.currentUserOrNull()?.id
+
+    private suspend fun loadMissingProfileNames(senderIds: List<String>) {
+        val missingSenderIds = senderIds.distinct().filterNot(profileNamesCache::containsKey)
+        if (missingSenderIds.isEmpty()) return
+
+        val fetchedNames = supabase.postgrest
+            .rpc("public_profile_names", buildJsonObject {
+                putJsonArray("p_ids") {
+                    missingSenderIds.forEach { add(JsonPrimitive(it)) }
+                }
+            })
+            .decodeList<PublicProfileName>()
+            .associate { it.id to it.displayName }
+        profileNamesCache.putAll(fetchedNames)
+    }
 }
 
 object PreviewConversationRepository : ConversationRepository {
@@ -165,6 +197,8 @@ object PreviewConversationRepository : ConversationRepository {
         messages.filter { it.conversationId == conversationId },
     )
 
+    override fun observeMessages(conversationId: String) = emptyFlow<ConversationMessage>()
+
     override suspend fun sendMessage(senderUserId: String, conversationId: String, content: String) =
         AuthActionResult(true, "Aperçu : message envoyé.")
 
@@ -181,6 +215,8 @@ object UnconfiguredConversationRepository : ConversationRepository {
     override suspend fun getMessages(conversationId: String) = Result.failure<List<ConversationMessage>>(
         IllegalStateException(message),
     )
+
+    override fun observeMessages(conversationId: String) = emptyFlow<ConversationMessage>()
 
     override suspend fun sendMessage(senderUserId: String, conversationId: String, content: String) =
         AuthActionResult(false, message)

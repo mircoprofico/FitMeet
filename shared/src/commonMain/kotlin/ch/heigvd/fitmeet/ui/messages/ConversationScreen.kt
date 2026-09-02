@@ -70,6 +70,12 @@ fun ConversationScreen(
                 errorMessage = it.message ?: "Impossible de charger les messages."
             }
         isLoading = false
+
+        conversationRepository.observeMessages(conversationId).collect { message ->
+            if (messages.none { it.id == message.id }) {
+                messages = messages + message
+            }
+        }
     }
 
     LaunchedEffect(messages.size) {
@@ -224,11 +230,6 @@ fun ConversationScreen(
 
                                 if (result.isSuccess) {
                                     currentMessage = ""
-
-                                    conversationRepository.getMessages(conversationId)
-                                        .onSuccess {
-                                            messages = it
-                                        }
                                 } else {
                                     errorMessage = result.message
                                 }
