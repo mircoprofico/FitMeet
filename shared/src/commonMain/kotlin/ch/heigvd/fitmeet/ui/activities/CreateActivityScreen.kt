@@ -1,5 +1,6 @@
 package ch.heigvd.fitmeet.ui.activities
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,12 +9,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -51,7 +54,6 @@ fun CreateActivityScreen(
         return
     }
 
-
     Scaffold(
         containerColor = Color(0xFF102E53),
         bottomBar = {
@@ -61,6 +63,19 @@ fun CreateActivityScreen(
                     containerColor = Color(0xFF3E8E68),
                     disabledContainerColor = Color(0xFF888888)
                 ),
+                enabled =
+                    if(currentScreen.value == 0){
+                        activityData.type != ""
+                    }else if (currentScreen.value == 1) {
+                        activityData.date != ""
+                                && activityData.time != ""
+                    }else if (currentScreen.value == 2) {
+                        activityData.position != ""
+                    }else if (currentScreen.value == 3) {
+                        activityData.name != ""
+                    } else
+                        false
+                ,
                 shape = RoundedCornerShape(6.dp),
                 modifier = Modifier.padding(16.dp).fillMaxWidth()
             ) {
@@ -73,7 +88,7 @@ fun CreateActivityScreen(
             }
         },
         topBar = {
-            Button(
+            IconButton(
                 onClick = {
                     activityData.reset()
                     currentScreen.value = 0
@@ -85,16 +100,17 @@ fun CreateActivityScreen(
                         }
                     }
                 },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFF0000),
-                ),
-                shape = RoundedCornerShape(6.dp),
-                modifier = Modifier.padding(16.dp)
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .size(40.dp)
+                    .background(Color(0xFFFF0000))
             ) {
                 Text(
                     "X",
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.W900,
+                    fontSize = 18.sp,
                     color = Color(0xFFFFFFFF)
                 )
             }
@@ -104,12 +120,10 @@ fun CreateActivityScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .safeContentPadding()
                 .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(15.dp))
-
+            Spacer(modifier = Modifier.height(10.dp))
             Text(
                 "Nouvelle Activité",
                 color = Color.White,

@@ -43,6 +43,7 @@ fun ActivityInfos() {
                 fontSize = 32.sp
             )
             TextField(
+                maxLines = 1,
                 value = activityData.name,
                 onValueChange = {activityData.name = it},
                 placeholder ={Text("Ex: match amical, tour du lac, etc...")},

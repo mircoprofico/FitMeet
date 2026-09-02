@@ -8,7 +8,7 @@ import ch.heigvd.fitmeet.ui.theme.Level
 var currentScreen = mutableStateOf(0)
 
 class ActivityData {
-    var type by mutableStateOf("None")
+    var type by mutableStateOf("")
     var date by mutableStateOf("")
     var time by mutableStateOf("")
     var duration by mutableStateOf(0)

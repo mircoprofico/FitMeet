@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import ch.heigvd.fitmeet.data.activityCreation.EventRepository
+import ch.heigvd.fitmeet.navigation.ActivityList
+import ch.heigvd.fitmeet.navigation.MainGraph
 import ch.heigvd.fitmeet.ui.activities.activityData
 import ch.heigvd.fitmeet.ui.activities.currentScreen
 import ch.heigvd.fitmeet.ui.activities.reset
@@ -69,9 +71,11 @@ fun ActivityConfirmation(
                         ).onSuccess {
                             errorMessage = null
                             activityData.reset()
-                            navController.navigate("activities") {
-                                popUpTo("createActivity") {
-                                    inclusive = true
+                            currentScreen.value = 0
+                            navController.navigate(ActivityList) {
+                                launchSingleTop = true
+                                popUpTo(MainGraph) {
+                                    inclusive = false
                                 }
                             }
                         }.onFailure {
