@@ -4,11 +4,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import ch.heigvd.fitmeet.ui.theme.Level
+import ch.heigvd.fitmeet.ui.theme.Sport
 
 var currentScreen = mutableStateOf(0)
 
 class ActivityData {
-    var type by mutableStateOf("")
+    var type by mutableStateOf<Sport?>(null)
     var date by mutableStateOf("")
     var time by mutableStateOf("")
     var duration by mutableStateOf(0)
@@ -24,7 +25,7 @@ class ActivityData {
 var activityData = ActivityData()
 
 fun ActivityData.reset() {
-    type = "None"
+    type = null
     date = ""
     time = ""
     duration = 0
