@@ -35,6 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.heigvd.fitmeet.data.activityCreation.DurationPickerDialog
 import ch.heigvd.fitmeet.data.activityCreation.formatDate
+import ch.heigvd.fitmeet.data.activityCreation.parseDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
@@ -52,6 +55,8 @@ fun ActivityDateTimeDuration() {
         var selectDate by remember { mutableStateOf(false) }
         var selectTime by remember { mutableStateOf(false) }
         var selectDuration by remember { mutableStateOf(false) }
+        var invalidTime by remember { mutableStateOf(false) }
+
 
 
         val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
@@ -94,7 +99,7 @@ fun ActivityDateTimeDuration() {
             ) {
                 Text(
                     text = if (activityData.date == "") {
-                        "Une autre date"
+                        "Choisir une date"
                     } else {
                         activityData.date
                     },
@@ -117,10 +122,13 @@ fun ActivityDateTimeDuration() {
             Button(
                 onClick = {
                     selectTime = true
+                    invalidTime = false
                 },
+                enabled = activityData.date != "", // if we didn't chose the date, we can't check for the time
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Green
+                    containerColor = Green,
+                    disabledContainerColor = Color(0xFF888888)
                 )
             ) {
                 Text(
@@ -147,17 +155,20 @@ fun ActivityDateTimeDuration() {
                 fontSize = 32.sp
             )
             Button(
+                enabled = activityData.time != "",
                 onClick = {
                     selectDuration = true
                 },
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Green
+                    containerColor = Green,
+                    disabledContainerColor = Color(0xFF888888)
+
                 )
             ) {
                 Text(
                     text = if (activityData.duration == 0) {
-                        "Choisir une durée (facultatif)"
+                        "Choisir une durée"
                     } else {
                         "${activityData.duration} min"
                     },
@@ -200,11 +211,31 @@ fun ActivityDateTimeDuration() {
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            // heure sous forme XX:XX
-                            activityData.time =
-                                "${timePickerState.hour.toString().padStart(2, '0')}:" +
-                                        timePickerState.minute.toString().padStart(2, '0')
-                            selectTime = false
+                            val selectedDate = activityData.date
+
+                            val selectedTime = LocalTime(
+                                hour = timePickerState.hour,
+                                minute = timePickerState.minute
+                            )
+
+                            val now = Clock.System.now()
+                                .toLocalDateTime(TimeZone.currentSystemDefault())
+
+                            val selectedDateTime = LocalDateTime(
+                                date = parseDate(selectedDate),
+                                time = selectedTime
+                            )
+
+                            if (selectedDateTime >= now) {
+                                activityData.time =
+                                    "${timePickerState.hour.toString().padStart(2, '0')}:" +
+                                            timePickerState.minute.toString().padStart(2, '0')
+
+                                selectTime = false
+                                invalidTime = false
+                            } else {
+                                invalidTime = true
+                            }
                         }
                     ) {
                         Text("Ok")
@@ -214,9 +245,24 @@ fun ActivityDateTimeDuration() {
                     Text("Choisir une heure")
                 }
             ) {
-                TimePicker(
-                    state = timePickerState
-                )
+                Column (
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                if (invalidTime) {
+                    Text(
+                        text = "Cette heure est déjà passée.",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+
+                    TimePicker(
+                        state = timePickerState
+                    )
+                }
             }
         }
 
