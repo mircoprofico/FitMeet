@@ -173,14 +173,13 @@ fun ConversationScreen(
                                     )
                                     .padding(horizontal = 16.dp, vertical = 10.dp),
                             ) {
-                                Column() {
-                                    if(!isMine){
+                                Column {
+                                    if (!isMine) {
                                         Text(
-                                            text = message.senderId,
+                                            text = message.senderName ?: "Utilisateur",
                                             color = Color(0xFF999999),
                                             fontSize = 10.sp,
                                         )
-
                                     }
                                     Text(
                                         text = message.content,

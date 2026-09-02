@@ -8,6 +8,9 @@ import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.putJsonArray
 
 @Serializable
 data class ConversationSummary(
@@ -26,8 +29,15 @@ data class ConversationMessage(
     val id: String,
     @SerialName("conversation_id") val conversationId: String,
     @SerialName("sender_id") val senderId: String,
+    val senderName: String? = null,
     val content: String,
     @SerialName("created_at") val createdAt: String,
+)
+
+@Serializable
+private data class PublicProfileName(
+    val id: String,
+    @SerialName("display_name") val displayName: String,
 )
 
 @Serializable
@@ -59,11 +69,29 @@ class SupabaseConversationRepository internal constructor(
     }
 
     override suspend fun getMessages(conversationId: String): Result<List<ConversationMessage>> = runCatching {
-        supabase.from("conversation_messages").select(
+        val messages = supabase.from("conversation_messages").select(
             columns = Columns.list("id", "conversation_id", "sender_id", "content", "created_at"),
         ) {
             filter { eq("conversation_id", conversationId) }
         }.decodeList<ConversationMessage>().sortedBy(ConversationMessage::createdAt)
+
+        val senderIds = messages.map(ConversationMessage::senderId).distinct()
+        val namesById = if (senderIds.isEmpty()) {
+            emptyMap()
+        } else {
+            supabase.postgrest
+                .rpc("public_profile_names", buildJsonObject {
+                    putJsonArray("p_ids") {
+                        senderIds.forEach { add(JsonPrimitive(it)) }
+                    }
+                })
+                .decodeList<PublicProfileName>()
+                .associate { it.id to it.displayName }
+        }
+
+        messages.map { message ->
+            message.copy(senderName = namesById[message.senderId])
+        }
     }
 
     override suspend fun sendMessage(
@@ -115,6 +143,7 @@ object PreviewConversationRepository : ConversationRepository {
             id = "preview-message-1",
             conversationId = "preview-conversation",
             senderId = "preview-user",
+            senderName = "Pierre",
             content = "Salut Pierre !",
             createdAt = "2026-09-15T17:30:00Z",
         ),
@@ -122,6 +151,7 @@ object PreviewConversationRepository : ConversationRepository {
             id = "preview-message-2",
             conversationId = "preview-conversation",
             senderId = "preview-other-user",
+            senderName = "John",
             content = "À tout à l'heure.",
             createdAt = "2026-09-15T17:31:00Z",
         ),
