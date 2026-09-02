@@ -160,12 +160,12 @@
 
                 //Text("Position géographique de l'activité: ${activityData.position}")
                 Text("Type de l'activité: ${activityData.type?.label}",
-                    fontSize = 15.sp,
+                    fontSize = 18.sp,
                     color = Color.White
                 )
                 Row(){
                     Text("Difficulté de l'activité: ",
-                        fontSize = 15.sp,
+                        fontSize = 18.sp,
                         color = Color.White)
                     LevelChip(
                         level = activityData.difficulty
@@ -216,7 +216,14 @@
                     },
                     enabled = !isSaving,
                 ) {
-                    Text(if (isSaving) "Création..." else "Terminer la création")
+                    Text(if (isSaving) "Création..." else "Terminer la création",
+                        fontSize = 35.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Black
+                        )
+                    Spacer(
+                        modifier = Modifier.height(20.dp)
+                    )
                 }
             }
         }
