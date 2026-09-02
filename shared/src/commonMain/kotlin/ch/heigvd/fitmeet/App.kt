@@ -21,6 +21,8 @@ import ch.heigvd.fitmeet.navigation.AuthGraph
 import ch.heigvd.fitmeet.navigation.Login
 import ch.heigvd.fitmeet.navigation.MainGraph
 import ch.heigvd.fitmeet.navigation.Onboarding
+import ch.heigvd.fitmeet.navigation.PasswordReset
+import ch.heigvd.fitmeet.data.auth.AuthCallback
 import ch.heigvd.fitmeet.data.auth.AuthRepository
 import ch.heigvd.fitmeet.data.auth.PreviewAuthRepository
 import ch.heigvd.fitmeet.data.activityCreation.EventRepository
@@ -47,7 +49,16 @@ fun App(
       LaunchedEffect(authRepository, profileRepository, authenticationCallbackUrl) {
           val state = if (authenticationCallbackUrl != null) {
               val result = authRepository.handleAuthenticationCallback(authenticationCallbackUrl)
-              if (!result.isSuccess) null else profileRepository.getOnboardingState()
+              when (result.getOrNull()) {
+                  AuthCallback.PasswordRecovery -> {
+                      navController.navigate(PasswordReset) {
+                          popUpTo(Login) { inclusive = true }
+                      }
+                      null
+                  }
+                  AuthCallback.EmailConfirmation -> profileRepository.getOnboardingState()
+                  null -> null
+              }
           } else {
               val restored = authRepository.restoreSession()
               if (restored.isAuthenticated) profileRepository.getOnboardingState() else null

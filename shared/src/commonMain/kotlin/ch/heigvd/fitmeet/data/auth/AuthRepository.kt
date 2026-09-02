@@ -9,11 +9,17 @@ data class AuthActionResult(val isSuccess: Boolean, val message: String)
 
 data class AuthRestoreResult(val isAuthenticated: Boolean)
 
+sealed interface AuthCallback {
+    data object PasswordRecovery : AuthCallback
+    data object EmailConfirmation : AuthCallback
+}
+
 interface AuthRepository {
     suspend fun signIn(email: String, password: String): AuthActionResult
     suspend fun signUp(email: String, password: String): AuthActionResult
     suspend fun requestPasswordReset(email: String): AuthActionResult
-    suspend fun handleAuthenticationCallback(url: String): AuthActionResult
+    suspend fun updatePassword(password: String): AuthActionResult
+    suspend fun handleAuthenticationCallback(url: String): Result<AuthCallback>
     suspend fun restoreSession(): AuthRestoreResult
     suspend fun signOut(): AuthActionResult
 }
@@ -38,19 +44,36 @@ class SupabaseAuthRepository internal constructor(
     }.getOrElse(::authFailure)
 
     override suspend fun requestPasswordReset(email: String): AuthActionResult = runCatching {
-        supabase.auth.resetPasswordForEmail(email)
+        supabase.auth.resetPasswordForEmail(
+            email = email,
+            redirectUrl = "fitmeet://auth/reset-password",
+        )
         AuthActionResult(true, "Un e-mail de réinitialisation a été envoyé.")
     }.getOrElse(::authFailure)
 
-    override suspend fun handleAuthenticationCallback(url: String): AuthActionResult = runCatching {
+    override suspend fun updatePassword(password: String): AuthActionResult = runCatching {
+        require(password.length >= 6) { "Le mot de passe doit contenir au moins 6 caractères." }
+        supabase.auth.updateUser {
+            this.password = password
+        }
+        supabase.auth.signOut()
+        AuthActionResult(true, "Mot de passe modifié. Connectez-vous à nouveau.")
+    }.getOrElse(::authFailure)
+
+    override suspend fun handleAuthenticationCallback(url: String): Result<AuthCallback> = runCatching {
         val session = supabase.auth.parseSessionFromUrl(url)
         val user = supabase.auth.retrieveUser(session.accessToken)
         supabase.auth.importSession(
             session.copy(user = user),
             source = SessionSource.External,
         )
-        AuthActionResult(true, "Votre e-mail est confirmé.")
-    }.getOrElse(::authFailure)
+
+        if (url.startsWith("fitmeet://auth/reset-password")) {
+            AuthCallback.PasswordRecovery
+        } else {
+            AuthCallback.EmailConfirmation
+        }
+    }
 
     override suspend fun restoreSession(): AuthRestoreResult = runCatching {
         supabase.auth.awaitInitialization()
@@ -72,7 +95,14 @@ object PreviewAuthRepository : AuthRepository {
     override suspend fun signIn(email: String, password: String) = AuthActionResult(true, "Aperçu : connexion simulée.")
     override suspend fun signUp(email: String, password: String) = AuthActionResult(true, "Aperçu : compte simulé.")
     override suspend fun requestPasswordReset(email: String) = AuthActionResult(true, "Aperçu : e-mail simulé.")
-    override suspend fun handleAuthenticationCallback(url: String) = AuthActionResult(true, "Aperçu : e-mail confirmé.")
+    override suspend fun updatePassword(password: String) = AuthActionResult(true, "Aperçu : mot de passe modifié.")
+    override suspend fun handleAuthenticationCallback(url: String) = Result.success(
+        if (url.startsWith("fitmeet://auth/reset-password")) {
+            AuthCallback.PasswordRecovery
+        } else {
+            AuthCallback.EmailConfirmation
+        },
+    )
     override suspend fun restoreSession() = AuthRestoreResult(false)
     override suspend fun signOut() = AuthActionResult(true, "Aperçu : déconnexion simulée.")
 }
@@ -82,7 +112,10 @@ object UnconfiguredAuthRepository : AuthRepository {
     override suspend fun signIn(email: String, password: String) = AuthActionResult(false, message)
     override suspend fun signUp(email: String, password: String) = AuthActionResult(false, message)
     override suspend fun requestPasswordReset(email: String) = AuthActionResult(false, message)
-    override suspend fun handleAuthenticationCallback(url: String) = AuthActionResult(false, message)
+    override suspend fun updatePassword(password: String) = AuthActionResult(false, message)
+    override suspend fun handleAuthenticationCallback(url: String) = Result.failure<AuthCallback>(
+        IllegalStateException(message),
+    )
     override suspend fun restoreSession() = AuthRestoreResult(false)
     override suspend fun signOut() = AuthActionResult(false, message)
 }
