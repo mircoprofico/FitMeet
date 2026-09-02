@@ -13,6 +13,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -34,6 +35,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.heigvd.fitmeet.data.activityCreation.DurationPickerDialog
 import ch.heigvd.fitmeet.data.activityCreation.formatDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.todayIn
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 
 private val Navy = Color(0xFF102E53)
@@ -47,7 +53,20 @@ fun ActivityDateTimeDuration() {
         var selectTime by remember { mutableStateOf(false) }
         var selectDuration by remember { mutableStateOf(false) }
 
-        val datePickerState = rememberDatePickerState()
+
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val datePickerState = rememberDatePickerState(
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    val date = Instant
+                        .fromEpochMilliseconds(utcTimeMillis)
+                        .toLocalDateTime(TimeZone.currentSystemDefault())
+                        .date
+
+                    return date >= today
+                }
+            }
+        )
         val timePickerState = rememberTimePickerState()
 
         Column(
