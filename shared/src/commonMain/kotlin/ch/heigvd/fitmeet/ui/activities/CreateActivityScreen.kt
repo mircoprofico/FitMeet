@@ -69,6 +69,7 @@ fun CreateActivityScreen(
                     }else if (currentScreen.value == 1) {
                         activityData.date != ""
                                 && activityData.time != ""
+                                && activityData.duration != -1
                     }else if (currentScreen.value == 2) {
                         activityData.position != ""
                     }else if (currentScreen.value == 3) {
