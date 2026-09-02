@@ -21,6 +21,8 @@ import ch.heigvd.fitmeet.navigation.AuthGraph
 import ch.heigvd.fitmeet.navigation.Login
 import ch.heigvd.fitmeet.navigation.MainGraph
 import ch.heigvd.fitmeet.navigation.Onboarding
+import ch.heigvd.fitmeet.data.activities.ActivityRepository
+import ch.heigvd.fitmeet.data.activities.PreviewActivityRepository
 import ch.heigvd.fitmeet.data.auth.AuthRepository
 import ch.heigvd.fitmeet.data.auth.PreviewAuthRepository
 import ch.heigvd.fitmeet.data.activityCreation.EventRepository
@@ -37,6 +39,7 @@ fun App(
     authRepository: AuthRepository = PreviewAuthRepository,
     profileRepository: ProfileRepository = PreviewProfileRepository,
     conversationRepository: ConversationRepository = PreviewConversationRepository,
+    activityRepository: ActivityRepository = PreviewActivityRepository,
     eventRepository: EventRepository = PreviewEventRepository,
     authenticationCallbackUrl: String? = null,
 ) {
@@ -89,6 +92,7 @@ fun App(
               profileRepository = profileRepository,
               conversationRepository = conversationRepository,
               eventRepository = eventRepository,
+              activityRepository = activityRepository,
               onboardingState = onboardingState,
               onOnboardingStateChanged = { onboardingState = it },
           )
