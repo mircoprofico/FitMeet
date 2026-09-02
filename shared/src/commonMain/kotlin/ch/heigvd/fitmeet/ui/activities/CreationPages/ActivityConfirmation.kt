@@ -59,7 +59,7 @@ fun ActivityConfirmation(
                     scope.launch {
                         isSaving = true
                         eventRepository.createEvent(
-                            type = activityData.type,
+                            type = activityData.type.toString(),
                             date = activityData.date,
                             time = activityData.time,
                             duration = activityData.duration,

@@ -65,7 +65,7 @@ fun CreateActivityScreen(
                 ),
                 enabled =
                     if(currentScreen.value == 0){
-                        activityData.type != ""
+                        activityData.type != null
                     }else if (currentScreen.value == 1) {
                         activityData.date != ""
                                 && activityData.time != ""
