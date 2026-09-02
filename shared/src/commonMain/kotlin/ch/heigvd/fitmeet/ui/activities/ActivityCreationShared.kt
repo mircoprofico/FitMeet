@@ -12,7 +12,7 @@ class ActivityData {
     var type by mutableStateOf<Sport?>(null)
     var date by mutableStateOf("")
     var time by mutableStateOf("")
-    var duration by mutableStateOf(0)
+    var duration by mutableStateOf(-1)
 
     var position by mutableStateOf("")
     var name by mutableStateOf("")
@@ -28,7 +28,7 @@ fun ActivityData.reset() {
     type = null
     date = ""
     time = ""
-    duration = 0
+    duration = -1
     position = ""
     name = ""
     description = ""

@@ -167,8 +167,10 @@ fun ActivityDateTimeDuration() {
                 )
             ) {
                 Text(
-                    text = if (activityData.duration == 0) {
+                    text = if (activityData.duration == -1) {
                         "Choisir une durée"
+                    } else if(activityData.duration == 0){
+                        "Non spécifiée"
                     } else {
                         "${activityData.duration} min"
                     },
