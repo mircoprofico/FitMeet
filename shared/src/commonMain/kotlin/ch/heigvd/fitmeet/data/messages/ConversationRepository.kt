@@ -62,6 +62,8 @@ interface ConversationRepository {
 class SupabaseConversationRepository internal constructor(
     private val supabase: SupabaseClient,
 ) : ConversationRepository {
+    private val profileNamesCache = mutableMapOf<String, String>()
+
     override suspend fun getAccessibleConversations(): Result<List<ConversationSummary>> = runCatching {
         supabase.postgrest
             .rpc("my_event_conversations")
@@ -76,21 +78,21 @@ class SupabaseConversationRepository internal constructor(
         }.decodeList<ConversationMessage>().sortedBy(ConversationMessage::createdAt)
 
         val senderIds = messages.map(ConversationMessage::senderId).distinct()
-        val namesById = if (senderIds.isEmpty()) {
-            emptyMap()
-        } else {
-            supabase.postgrest
+        val missingSenderIds = senderIds.filterNot(profileNamesCache::containsKey)
+        if (missingSenderIds.isNotEmpty()) {
+            val fetchedNames = supabase.postgrest
                 .rpc("public_profile_names", buildJsonObject {
                     putJsonArray("p_ids") {
-                        senderIds.forEach { add(JsonPrimitive(it)) }
+                        missingSenderIds.forEach { add(JsonPrimitive(it)) }
                     }
                 })
                 .decodeList<PublicProfileName>()
                 .associate { it.id to it.displayName }
+            profileNamesCache.putAll(fetchedNames)
         }
 
         messages.map { message ->
-            message.copy(senderName = namesById[message.senderId])
+            message.copy(senderName = profileNamesCache[message.senderId])
         }
     }
 
