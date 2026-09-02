@@ -1,9 +1,14 @@
 package ch.heigvd.fitmeet.ui.activities
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,11 +29,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.FontScaling
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.heigvd.fitmeet.data.activityCreation.DurationPickerDialog
 import ch.heigvd.fitmeet.data.activityCreation.formatDate
 
+
+private val Navy = Color(0xFF102E53)
+private val Green = Color(0xFF429A72)
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
@@ -44,6 +53,9 @@ fun ActivityDateTimeDuration() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            Spacer(
+                modifier = Modifier.height(30.dp)
+            )
             // Day
             Text(
                 "Quel jour?",
@@ -55,14 +67,20 @@ fun ActivityDateTimeDuration() {
             Button(
                 onClick = {
                     selectDate = true
-                }
+                },
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Green
+                )
             ) {
                 Text(
                     text = if (activityData.date == "") {
-                        "Choisir une date"
+                        "Une autre date"
                     } else {
                         activityData.date
-                    }
+                    },
+                    fontWeight = FontWeight.W700,
+                    fontSize = 20.sp
                 )
             }
             Spacer(
@@ -80,14 +98,20 @@ fun ActivityDateTimeDuration() {
             Button(
                 onClick = {
                     selectTime = true
-                }
+                },
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Green
+                )
             ) {
                 Text(
                     text = if (activityData.time == "") {
                         "Choisir une heure"
                     } else {
                         activityData.time
-                    }
+                    },
+                    fontWeight = FontWeight.W700,
+                    fontSize = 20.sp
                 )
             }
 
@@ -106,14 +130,20 @@ fun ActivityDateTimeDuration() {
             Button(
                 onClick = {
                     selectDuration = true
-                }
+                },
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Green
+                )
             ) {
                 Text(
                     text = if (activityData.duration == 0) {
                         "Choisir une durée (facultatif)"
                     } else {
                         "${activityData.duration} min"
-                    }
+                    },
+                    fontWeight = FontWeight.W700,
+                    fontSize = 20.sp
                 )
             }
 
