@@ -59,7 +59,7 @@ fun DurationPickerDialog(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = if (duration == 0) "Non précisé" else "$duration min",
+                                text = if (duration == 0) "Non spécifiée" else "$duration min",
                                 fontSize = if (duration == selectedDuration) {
                                     24.sp
                                 } else {
