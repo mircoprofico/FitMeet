@@ -36,3 +36,15 @@ fun ActivityData.reset() {
     capacity = 2
 }
 
+fun parsePosition(position: String): Pair<Double, Double> {
+    val coordinates = position
+        .removePrefix("POINT(")
+        .removeSuffix(")")
+        .split(" ")
+
+    val lng = coordinates[0].toDouble()
+    val lat = coordinates[1].toDouble()
+
+    return Pair(lat, lng)
+}
+
