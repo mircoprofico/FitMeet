@@ -5,9 +5,21 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.realtime.channel
+import io.github.jan.supabase.realtime.decodeRecord
+import io.github.jan.supabase.realtime.postgresChangeFlow
+import io.github.jan.supabase.realtime.realtime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 
 @Serializable
 data class ConversationSummary(
@@ -26,8 +38,15 @@ data class ConversationMessage(
     val id: String,
     @SerialName("conversation_id") val conversationId: String,
     @SerialName("sender_id") val senderId: String,
+    val senderName: String? = null,
     val content: String,
     @SerialName("created_at") val createdAt: String,
+)
+
+@Serializable
+private data class PublicProfileName(
+    val id: String,
+    @SerialName("display_name") val displayName: String,
 )
 
 @Serializable
@@ -40,6 +59,7 @@ private data class NewConversationMessage(
 interface ConversationRepository {
     suspend fun getAccessibleConversations(): Result<List<ConversationSummary>>
     suspend fun getMessages(conversationId: String): Result<List<ConversationMessage>>
+    fun observeMessages(conversationId: String): Flow<ConversationMessage>
     suspend fun sendMessage(
         senderUserId: String,
         conversationId: String,
@@ -52,6 +72,8 @@ interface ConversationRepository {
 class SupabaseConversationRepository internal constructor(
     private val supabase: SupabaseClient,
 ) : ConversationRepository {
+    private val profileNamesCache = mutableMapOf<String, String>()
+
     override suspend fun getAccessibleConversations(): Result<List<ConversationSummary>> = runCatching {
         supabase.postgrest
             .rpc("my_event_conversations")
@@ -59,11 +81,36 @@ class SupabaseConversationRepository internal constructor(
     }
 
     override suspend fun getMessages(conversationId: String): Result<List<ConversationMessage>> = runCatching {
-        supabase.from("conversation_messages").select(
+        val messages = supabase.from("conversation_messages").select(
             columns = Columns.list("id", "conversation_id", "sender_id", "content", "created_at"),
         ) {
             filter { eq("conversation_id", conversationId) }
         }.decodeList<ConversationMessage>().sortedBy(ConversationMessage::createdAt)
+
+        loadMissingProfileNames(messages.map(ConversationMessage::senderId))
+
+        messages.map { message ->
+            message.copy(senderName = profileNamesCache[message.senderId])
+        }
+    }
+
+    override fun observeMessages(conversationId: String): Flow<ConversationMessage> = flow {
+        val channel = supabase.channel("conversation-$conversationId")
+        try {
+            val changes = channel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
+                table = "conversation_messages"
+                filter("conversation_id", FilterOperator.EQ, conversationId)
+            }
+            channel.subscribe()
+
+            changes.collect { action ->
+                val message = action.decodeRecord<ConversationMessage>()
+                loadMissingProfileNames(listOf(message.senderId))
+                emit(message.copy(senderName = profileNamesCache[message.senderId]))
+            }
+        } finally {
+            supabase.realtime.removeChannel(channel)
+        }
     }
 
     override suspend fun sendMessage(
@@ -95,6 +142,21 @@ class SupabaseConversationRepository internal constructor(
     }
 
     override fun currentUserId(): String? = supabase.auth.currentUserOrNull()?.id
+
+    private suspend fun loadMissingProfileNames(senderIds: List<String>) {
+        val missingSenderIds = senderIds.distinct().filterNot(profileNamesCache::containsKey)
+        if (missingSenderIds.isEmpty()) return
+
+        val fetchedNames = supabase.postgrest
+            .rpc("public_profile_names", buildJsonObject {
+                putJsonArray("p_ids") {
+                    missingSenderIds.forEach { add(JsonPrimitive(it)) }
+                }
+            })
+            .decodeList<PublicProfileName>()
+            .associate { it.id to it.displayName }
+        profileNamesCache.putAll(fetchedNames)
+    }
 }
 
 object PreviewConversationRepository : ConversationRepository {
@@ -115,6 +177,7 @@ object PreviewConversationRepository : ConversationRepository {
             id = "preview-message-1",
             conversationId = "preview-conversation",
             senderId = "preview-user",
+            senderName = "Pierre",
             content = "Salut Pierre !",
             createdAt = "2026-09-15T17:30:00Z",
         ),
@@ -122,6 +185,7 @@ object PreviewConversationRepository : ConversationRepository {
             id = "preview-message-2",
             conversationId = "preview-conversation",
             senderId = "preview-other-user",
+            senderName = "John",
             content = "À tout à l'heure.",
             createdAt = "2026-09-15T17:31:00Z",
         ),
@@ -132,6 +196,8 @@ object PreviewConversationRepository : ConversationRepository {
     override suspend fun getMessages(conversationId: String) = Result.success(
         messages.filter { it.conversationId == conversationId },
     )
+
+    override fun observeMessages(conversationId: String) = emptyFlow<ConversationMessage>()
 
     override suspend fun sendMessage(senderUserId: String, conversationId: String, content: String) =
         AuthActionResult(true, "Aperçu : message envoyé.")
@@ -149,6 +215,8 @@ object UnconfiguredConversationRepository : ConversationRepository {
     override suspend fun getMessages(conversationId: String) = Result.failure<List<ConversationMessage>>(
         IllegalStateException(message),
     )
+
+    override fun observeMessages(conversationId: String) = emptyFlow<ConversationMessage>()
 
     override suspend fun sendMessage(senderUserId: String, conversationId: String, content: String) =
         AuthActionResult(false, message)

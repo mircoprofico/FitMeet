@@ -70,6 +70,12 @@ fun ConversationScreen(
                 errorMessage = it.message ?: "Impossible de charger les messages."
             }
         isLoading = false
+
+        conversationRepository.observeMessages(conversationId).collect { message ->
+            if (messages.none { it.id == message.id }) {
+                messages = messages + message
+            }
+        }
     }
 
     LaunchedEffect(messages.size) {
@@ -173,14 +179,13 @@ fun ConversationScreen(
                                     )
                                     .padding(horizontal = 16.dp, vertical = 10.dp),
                             ) {
-                                Column() {
-                                    if(!isMine){
+                                Column {
+                                    if (!isMine) {
                                         Text(
-                                            text = message.senderId,
+                                            text = message.senderName ?: "Utilisateur",
                                             color = Color(0xFF999999),
                                             fontSize = 10.sp,
                                         )
-
                                     }
                                     Text(
                                         text = message.content,
@@ -225,11 +230,6 @@ fun ConversationScreen(
 
                                 if (result.isSuccess) {
                                     currentMessage = ""
-
-                                    conversationRepository.getMessages(conversationId)
-                                        .onSuccess {
-                                            messages = it
-                                        }
                                 } else {
                                     errorMessage = result.message
                                 }
