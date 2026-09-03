@@ -50,9 +50,9 @@ fun ActivityCard(
     modifier: Modifier = Modifier,
 ) {
     Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
-        // 100 dp: one title line, date, place and the button row.
-        // the mockup is 123 because its titles wrap on two lines.
-        Row(modifier = Modifier.height(100.dp)) {
+        // 112 dp: the content needs 99.5 and compose rounds up, at 100 the
+        // level chip was getting clipped by the bottom edge.
+        Row(modifier = Modifier.height(112.dp)) {
 
             // left: sport icon on its tinted block
             Box(
