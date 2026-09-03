@@ -17,12 +17,16 @@ fun MapScreen(
     selectedLat: Double? = null,
     selectedLng: Double? = null,
 ) {
-    var latitude by remember { mutableStateOf(DEFAULT_LAT) }
-    var longitude by remember { mutableStateOf(DEFAULT_LNG) }
+    // when a location is already chosen (e.g. confirmation screen), start the
+    // camera there and skip LocationEffect so it does not override the pin.
+    var latitude by remember { mutableStateOf(selectedLat ?: DEFAULT_LAT) }
+    var longitude by remember { mutableStateOf(selectedLng ?: DEFAULT_LNG) }
 
-    LocationEffect { lat, lng ->
-        latitude = lat
-        longitude = lng
+    if (selectedLat == null) {
+        LocationEffect { lat, lng ->
+            latitude = lat
+            longitude = lng
+        }
     }
 
     PlatformMap(
