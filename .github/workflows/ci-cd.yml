@@ -7,10 +7,10 @@ name: CI/CD
 on:
   pull_request:
     branches: [main, staging]
-  # personne ne peut push sur main ni staging, donc si un commit y arrive
+  # personne ne peut push sur main, donc si un commit y arrive
   # c'est qu'une PR vient d'être merge
   push:
-    branches: [main, staging]
+    branches: [main]
 
 
 jobs:
@@ -101,9 +101,8 @@ jobs:
     # il attend les deux autres jobs. si un build casse, on release rien
     needs: [android, ios]
     # sur une PR il est skip, il ne tourne qu'après un merge.
-    # et uniquement sur main : un merge dans staging ne publie rien.
     # c'est cette ligne qui sépare le CI du CD
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push'
     # par défaut un job a juste le read sur le repo. release = write,
     # sans ça on se prend un 403
     permissions:

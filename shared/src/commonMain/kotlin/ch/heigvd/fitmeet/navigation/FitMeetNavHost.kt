@@ -4,24 +4,36 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
+import ch.heigvd.fitmeet.data.activities.ActivityRepository
 import ch.heigvd.fitmeet.data.auth.AuthRepository
-import ch.heigvd.fitmeet.ui.activities.ActivityDetailScreen
+import ch.heigvd.fitmeet.data.activityCreation.EventRepository
+import ch.heigvd.fitmeet.data.profile.OnboardingState
+import ch.heigvd.fitmeet.data.profile.ProfileRepository
+import ch.heigvd.fitmeet.data.messages.ConversationRepository
 import ch.heigvd.fitmeet.ui.activities.ActivityListScreen
+import ch.heigvd.fitmeet.ui.activities.ActivityListViewModel
 import ch.heigvd.fitmeet.ui.activities.CreateActivityScreen
 import ch.heigvd.fitmeet.ui.auth.LoginScreen
 import ch.heigvd.fitmeet.ui.auth.OnboardingScreen
+import ch.heigvd.fitmeet.ui.auth.PasswordResetScreen
 import ch.heigvd.fitmeet.ui.auth.RegisterScreen
 import ch.heigvd.fitmeet.ui.map.MapScreen
 import ch.heigvd.fitmeet.ui.messages.ConversationListScreen
 import ch.heigvd.fitmeet.ui.messages.ConversationScreen
+import ch.heigvd.fitmeet.ui.profile.EditProfileScreen
 import ch.heigvd.fitmeet.ui.profile.ProfileScreen
 import ch.heigvd.fitmeet.ui.onboarding.onboarding_2_sports
+import ch.heigvd.fitmeet.ui.profile.ProfileViewModel
 
 /**
  * Maps every route to its screen.
@@ -32,8 +44,19 @@ import ch.heigvd.fitmeet.ui.onboarding.onboarding_2_sports
 fun FitMeetNavHost(
     navController: NavHostController,
     authRepository: AuthRepository,
+    profileRepository: ProfileRepository,
+    conversationRepository: ConversationRepository,
+    eventRepository: EventRepository,
+    activityRepository: ActivityRepository,
+    onboardingState: OnboardingState = OnboardingState(),
+    onOnboardingStateChanged: (OnboardingState) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    // Keep this shared profile state at the NavHost level.  Looking up a
+    // navigation-owned ViewModel works on Android but can crash on iOS when
+    // the MainGraph back-stack entry is restored.
+    val profileViewModel = remember { ProfileViewModel(profileRepository) }
+
     NavHost(
         navController = navController,
         startDestination = AuthGraph,
@@ -45,7 +68,11 @@ fun FitMeetNavHost(
                     onCreateAccount = { navController.navigate(Register) },
                     onLogin = { email, password ->
                         authRepository.signIn(email, password).also { result ->
-                            if (result.isSuccess) navController.enterApp()
+                            if (result.isSuccess) {
+                                val state = profileRepository.getOnboardingState()
+                                onOnboardingStateChanged(state)
+                                navController.openAfterAuthentication(state)
+                            }
                         }
                     },
                     onForgotPassword = authRepository::requestPasswordReset,
@@ -54,34 +81,93 @@ fun FitMeetNavHost(
             composable<Register> {
                 RegisterScreen(onRegister = authRepository::signUp)
             }
+            composable<PasswordReset> {
+                PasswordResetScreen(
+                    onPasswordReset = authRepository::updatePassword,
+                    onPasswordResetSuccess = {
+                        navController.navigate(Login) {
+                            popUpTo(PasswordReset) { inclusive = true }
+                        }
+                    },
+                )
+            }
             composable<Onboarding> {
-                OnboardingScreen(onNext = { navController.navigate(OnboardingSports) })
+                OnboardingScreen(
+                    state = onboardingState,
+                    onNext = { name, birthdate ->
+                        onOnboardingStateChanged(
+                            onboardingState.copy(name = name, birthdate = birthdate),
+                        )
+                        navController.navigate(OnboardingSports)
+                    },
+                )
             }
             composable<OnboardingSports> {
-                onboarding_2_sports(onFinish = { navController.enterApp() })
+                onboarding_2_sports(
+                    initialSelectedSports = onboardingState.selectedSports,
+                    initialName = onboardingState.name,
+                    initialBirthdate = onboardingState.birthdate,
+                    onFinish = { name, birthdate, sports ->
+                        profileRepository.completeOnboarding(name, birthdate, sports)
+                    },
+                    onSaved = {
+                        onOnboardingStateChanged(onboardingState.copy(complete = true))
+                        navController.enterApp()
+                    },
+                )
             }
         }
 
         navigation<MainGraph>(startDestination = ActivityList) {
             composable<ActivityList> {
-                TemporaryNav(
-                    "Ouvrir une activite" to { navController.navigate(ActivityDetail("demo-1")) },
-                ) { ActivityListScreen() }
+                // the view model is remembered per destination, so leaving the
+                // tab and coming back does not fire a new request
+                val viewModel = remember { ActivityListViewModel(activityRepository) }
+                val state by viewModel.uiState.collectAsState()
+                ActivityListScreen(
+                    state = state,
+                    onToggleJoin = viewModel::toggleJoin,
+                    onRetry = viewModel::refresh,
+                )
             }
             composable<MapTab> { MapScreen() }
-            composable<CreateActivity> { CreateActivityScreen() }
+            composable<CreateActivity> { CreateActivityScreen(eventRepository, navController) }
             composable<Messages> {
                 TemporaryNav(
-                    "Ouvrir une conversation" to { navController.navigate(Conversation("demo-1")) },
-                ) { ConversationListScreen() }
+                    "Ouvrir une conversation" to { navController.navigate(Conversation("demo-1", "demo")) },
+                ) {
+                    ConversationListScreen(
+                        navController = navController,
+                        conversationRepository = conversationRepository,
+                    )
+                }
             }
-            composable<Profile> { ProfileScreen() }
+            composable<Profile> {
+                ProfileScreen(
+                    viewModel = profileViewModel,
+                    onEditProfile = { navController.navigate(EditProfile) },
+                    onLogout = {
+                        authRepository.signOut().also { result ->
+                            if (result.isSuccess) {
+                                onOnboardingStateChanged(OnboardingState())
+                                navController.leaveApp()
+                            }
+                        }
+                    },
+                )
+            }
+            composable<EditProfile> {
+                EditProfileScreen(viewModel = profileViewModel, onBack = { navController.popBackStack() })
+            }
 
-            composable<ActivityDetail> { entry ->
-                ActivityDetailScreen(activityId = entry.toRoute<ActivityDetail>().activityId)
-            }
             composable<Conversation> { entry ->
-                ConversationScreen(activityId = entry.toRoute<Conversation>().activityId)
+                val conversation = entry.toRoute<Conversation>()
+                ConversationScreen(
+                    conversationId = conversation.conversationId,
+                    conversationTitle = conversation.conversationTitle,
+                    navController = navController,
+                    conversationRepository = conversationRepository,
+                )
             }
         }
     }
@@ -117,5 +203,24 @@ private fun TemporaryNav(
 private fun NavHostController.enterApp() {
     navigate(MainGraph) {
         popUpTo(AuthGraph) { inclusive = true }
+    }
+}
+
+private fun NavHostController.openAfterAuthentication(state: OnboardingState) {
+    if (state.complete) {
+        enterApp()
+        return
+    }
+
+    navigate(Onboarding) {
+        popUpTo(Login) { inclusive = true }
+        launchSingleTop = true
+    }
+}
+
+private fun NavHostController.leaveApp() {
+    navigate(Login) {
+        popUpTo(MainGraph) { inclusive = true }
+        launchSingleTop = true
     }
 }

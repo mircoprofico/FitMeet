@@ -1,9 +1,49 @@
 package ch.heigvd.fitmeet.ui.map
 
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+
+private const val DEFAULT_LAT = 46.5197
+private const val DEFAULT_LNG = 6.6323
 
 @Composable
-fun MapScreen() {
-    Text("Carte - #69 - Antoine")
+fun MapScreen(
+    onMapClick: ((Double, Double) -> Unit)? = null,
+    selectedLat: Double? = null,
+    selectedLng: Double? = null,
+) {
+    var latitude by remember { mutableStateOf(DEFAULT_LAT) }
+    var longitude by remember { mutableStateOf(DEFAULT_LNG) }
+
+    LocationEffect { lat, lng ->
+        latitude = lat
+        longitude = lng
+    }
+
+    PlatformMap(
+        latitude = latitude,
+        longitude = longitude,
+        modifier = Modifier.fillMaxSize(),
+        onMapClick = onMapClick,
+        selectedLat = selectedLat,
+        selectedLng = selectedLng,
+    )
 }
+
+@Composable
+expect fun PlatformMap(
+    latitude: Double,
+    longitude: Double,
+    modifier: Modifier,
+    onMapClick: ((Double, Double) -> Unit)? = null,
+    selectedLat: Double? = null,
+    selectedLng: Double? = null,
+)
+
+@Composable
+expect fun LocationEffect(onLocation: (Double, Double) -> Unit)
