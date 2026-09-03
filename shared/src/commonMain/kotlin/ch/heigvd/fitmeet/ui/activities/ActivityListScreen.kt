@@ -46,7 +46,7 @@ import ch.heigvd.fitmeet.ui.components.ErrorState
 fun ActivityListScreen(
     state: ActivityListUiState = ActivityListUiState.Success(sampleActivities),
     onActivityClick: (String) -> Unit = {},
-    onJoin: (String) -> Unit = {},
+    onToggleJoin: (String) -> Unit = {},
     onRetry: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -168,7 +168,7 @@ fun ActivityListScreen(
                             selected = activity
                             onActivityClick(activity.id)
                         },
-                        onJoin = { onJoin(activity.id) },
+                        onJoin = { onToggleJoin(activity.id) },
                     )
                 }
             }
@@ -202,7 +202,7 @@ fun ActivityListScreen(
                         ?.activities?.firstOrNull { it.id == activity.id } ?: activity
                     ActivityDetailScreen(
                         activity = live,
-                        onJoin = { onJoin(live.id) },
+                        onJoin = { onToggleJoin(live.id) },
                     )
                 }
             }

@@ -22,6 +22,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,11 +61,17 @@ fun ProfileScreen(
     var logoutMessage by remember { mutableStateOf<AuthActionResult?>(null) }
     val scope = rememberCoroutineScope()
 
+    LaunchedEffect(Unit) { viewModel.refresh() }
+
     when (val state = uiState) {
         is ProfileUiState.Loading -> Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) { CircularProgressIndicator(color = ColorPrimary) }
+        is ProfileUiState.Error -> Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) { androidx.compose.material3.Text(state.message, color = ColorDanger) }
         is ProfileUiState.Success -> ProfileContent(
             profile = state.profile,
             onEditProfile = onEditProfile,
@@ -103,7 +110,7 @@ private fun ProfileContent(
             onClick = onEditProfile,
             modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
         ) {
-            Text("✏️ Modifier", color = ColorPrimary, fontSize = 13.sp)
+            Text("Modifier", color = ColorPrimary, fontSize = 13.sp)
         }
     }
 }
@@ -133,11 +140,6 @@ private fun ProfileHeader(profile: UserProfile) {
             text = profile.fullName + ", " + profile.age,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-        )
-        Text(
-            text = "📍 ${profile.city}",
-            fontSize = 14.sp,
-            color = ColorTextSecondary,
         )
         if (profile.bio.isNotBlank()) {
             Text(
@@ -224,5 +226,5 @@ private fun SignOutButton(onClick: () -> Unit = {}) {
 @Preview
 @Composable
 private fun ProfileScreenPreview() {
-    ProfileContent(profile = mockProfile)
+    ProfileContent(profile = previewProfile)
 }

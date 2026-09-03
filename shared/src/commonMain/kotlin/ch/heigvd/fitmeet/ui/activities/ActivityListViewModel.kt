@@ -7,8 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-// holds the state of the list screen and talks to the repository.
-// the screen itself stays dumb: it only draws whatever state it gets.
 class ActivityListViewModel(
     private val repository: ActivityRepository,
 ) : ViewModel() {
@@ -42,15 +40,12 @@ class ActivityListViewModel(
         viewModelScope.launch {
             val result = if (joining) repository.join(activityId)
                          else repository.leave(activityId)
-            // whatever happened, the server has the truth
             if (result.isFailure) _uiState.value = current
             refresh()
         }
     }
 
     fun refresh() {
-        // launch opens a coroutine, the only place a suspend call is allowed.
-        // viewModelScope cancels it if the user leaves the screen.
         viewModelScope.launch {
             _uiState.value = ActivityListUiState.Loading
             _uiState.value = repository.nearbyActivities().fold(

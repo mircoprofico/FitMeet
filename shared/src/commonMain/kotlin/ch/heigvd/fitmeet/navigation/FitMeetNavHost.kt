@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -56,7 +55,7 @@ fun FitMeetNavHost(
     // Keep this shared profile state at the NavHost level.  Looking up a
     // navigation-owned ViewModel works on Android but can crash on iOS when
     // the MainGraph back-stack entry is restored.
-    val profileViewModel = remember { ProfileViewModel() }
+    val profileViewModel = remember { ProfileViewModel(profileRepository) }
 
     NavHost(
         navController = navController,
@@ -127,8 +126,8 @@ fun FitMeetNavHost(
                 val state by viewModel.uiState.collectAsState()
                 ActivityListScreen(
                     state = state,
+                    onToggleJoin = viewModel::toggleJoin,
                     onRetry = viewModel::refresh,
-                    onJoin = viewModel::toggleJoin,
                 )
             }
             composable<MapTab> { MapScreen() }

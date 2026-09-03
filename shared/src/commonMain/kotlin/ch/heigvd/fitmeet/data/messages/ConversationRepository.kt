@@ -37,6 +37,7 @@ private data class ConversationRow(
     val title: String,
     @SerialName("sport_slug") val sportSlug: String,
     @SerialName("starts_at") val startsAt: String,
+    @SerialName("ends_at") val endsAt: String? = null,
     @SerialName("location_name") val locationName: String,
     val location: String? = null,
     val description: String? = null,

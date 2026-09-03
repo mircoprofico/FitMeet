@@ -4,15 +4,12 @@ import ch.heigvd.fitmeet.model.Activity
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
-// what one row of the events table looks like. field names match the
-// columns, @SerialName maps snake_case to camelCase.
-// private: nobody outside this file needs to know the table shape.
 @Serializable
 private data class EventRow(
     val id: String,
@@ -29,11 +26,13 @@ private data class EventRow(
     @SerialName("is_organizer") val isOrganizer: Boolean = false,
 )
 
-// who can read activities. the screen depends on this interface, not on
-// supabase, so previews can be given a fake one instead.
+@Serializable
+private data class EventParticipantInsert(
+    @SerialName("event_id") val eventId: String,
+    @SerialName("user_id") val userId: String,
+)
+
 interface ActivityRepository {
-    // suspend: it waits for the network without freezing the ui.
-    // Result holds either the list or the error, no exception thrown.
     suspend fun nearbyActivities(): Result<List<Activity>>
 
     // the capacity check lives in the join_event function, inside the same
@@ -92,7 +91,6 @@ private fun EventRow.toActivity() = Activity.fromEvent(
     capacity = capacity,
 )
 
-// used by previews and when supabase is not configured: no network at all.
 object PreviewActivityRepository : ActivityRepository {
     override suspend fun nearbyActivities(): Result<List<Activity>> =
         Result.success(sampleActivities)
