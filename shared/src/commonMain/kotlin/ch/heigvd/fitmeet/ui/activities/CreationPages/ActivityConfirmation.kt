@@ -194,6 +194,7 @@
                                 time = activityData.time,
                                 duration = activityData.duration,
                                 position = activityData.position,
+                                positionName = activityData.positionName,
                                 name = activityData.name,
                                 description = activityData.description,
                                 difficulty = activityData.difficulty.label,

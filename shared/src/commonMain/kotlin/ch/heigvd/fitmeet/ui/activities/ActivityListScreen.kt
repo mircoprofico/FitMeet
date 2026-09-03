@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,6 +30,8 @@ import kotlinx.datetime.toLocalDateTime
 import ch.heigvd.fitmeet.data.activities.sampleActivities
 import ch.heigvd.fitmeet.model.Activity
 import ch.heigvd.fitmeet.ui.map.LocationEffect
+import ch.heigvd.fitmeet.ui.map.isNamedPlace
+import ch.heigvd.fitmeet.ui.map.rememberPlaceName
 import ch.heigvd.fitmeet.ui.components.ActivityCard
 import ch.heigvd.fitmeet.ui.components.DateRange
 import ch.heigvd.fitmeet.ui.components.EmptyState
@@ -43,6 +46,12 @@ fun ActivityListScreen(
     onActivityClick: (String) -> Unit = {},
     onToggleJoin: (String) -> Unit = {},
     onRetry: () -> Unit = {},
+    // pull to refresh: the gesture calls onRefresh, and isRefreshing keeps
+    // its spinner up until the answer is in
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
+    // attendee names per activity, for the avatar stack in the sheet
+    attendees: Map<String, List<String>> = emptyMap(),
     modifier: Modifier = Modifier,
 ) {
     // one object for every filter, so the screen, the sheet and the test
@@ -119,7 +128,10 @@ fun ActivityListScreen(
 
                 if (visible.isEmpty()) {
                     EmptyState("Aucune activité pour ce filtre")
-                } else {
+                } else PullToRefreshBox(
+                    isRefreshing = isRefreshing,
+                    onRefresh = onRefresh,
+                ) {
                     // LazyColumn and not Column: it only builds the rows that
                     // are on screen, so a long list stays smooth
                     LazyColumn(
@@ -131,11 +143,25 @@ fun ActivityListScreen(
                         verticalArrangement = Arrangement.spacedBy(14.dp),
                     ) {
                         items(visible, key = { it.id }) { activity ->
+                            // activities created before the geocoder landed
+                            // all carry the same placeholder, so the point is
+                            // resolved here instead. passing nulls when the
+                            // row already has a name keeps the call cheap
+                            // without making it conditional.
+                            val named = activity.place.isNamedPlace()
+                            val resolved = rememberPlaceName(
+                                latitude = if (named) null else activity.latitude,
+                                longitude = if (named) null else activity.longitude,
+                            )
                             ActivityCard(
                                 title = activity.title,
                                 sport = activity.sport,
                                 dateTime = activity.dateTime,
-                                place = activity.place,
+                                place = when {
+                                    named -> activity.place
+                                    resolved != null -> resolved.city
+                                    else -> "Lieu sur la carte"
+                                },
                                 level = activity.level,
                                 participants = activity.participants,
                                 capacity = activity.capacity,
@@ -176,6 +202,7 @@ fun ActivityListScreen(
                             ?: activity
                         ActivityDetailScreen(
                             activity = live,
+                            attendeeNames = attendees[live.id].orEmpty(),
                             onJoin = { onToggleJoin(live.id) },
                         )
                     }

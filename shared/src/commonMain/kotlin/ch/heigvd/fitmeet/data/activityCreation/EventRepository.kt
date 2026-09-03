@@ -21,6 +21,9 @@ interface EventRepository {
         time: String,
         duration: Int,
         position: String,
+        // what the geocoder made of the point. empty when it could not
+        // resolve it, and the row keeps the placeholder.
+        positionName: String,
         name: String,
         description: String,
         difficulty: String,
@@ -53,6 +56,9 @@ class SupabaseEventRepository(
         time: String,
         duration: Int,
         position: String,
+        // what the geocoder made of the point. empty when it could not
+        // resolve it, and the row keeps the placeholder.
+        positionName: String,
         name: String,
         description: String,
         difficulty: String,
@@ -80,7 +86,7 @@ class SupabaseEventRepository(
                 startsAt = startsAt.toString(),
                 endsAt = endsAt.toString(),
                 duration = duration.toDouble(),
-                locationName = "Position choisie",
+                locationName = positionName.trim().ifEmpty { "Position choisie" },
                 location = position,
                 level = levelSlug(difficulty),
                 capacity = capacity,
@@ -129,6 +135,9 @@ object PreviewEventRepository : EventRepository {
         time: String,
         duration: Int,
         position: String,
+        // what the geocoder made of the point. empty when it could not
+        // resolve it, and the row keeps the placeholder.
+        positionName: String,
         name: String,
         description: String,
         difficulty: String,
@@ -143,6 +152,9 @@ object UnconfiguredEventRepository : EventRepository {
         time: String,
         duration: Int,
         position: String,
+        // what the geocoder made of the point. empty when it could not
+        // resolve it, and the row keeps the placeholder.
+        positionName: String,
         name: String,
         description: String,
         difficulty: String,

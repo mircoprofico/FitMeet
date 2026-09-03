@@ -33,6 +33,8 @@ import ch.heigvd.fitmeet.data.activities.sampleActivities
 import ch.heigvd.fitmeet.model.Activity
 import ch.heigvd.fitmeet.ui.components.AvatarStack
 import ch.heigvd.fitmeet.ui.components.LevelChip
+import ch.heigvd.fitmeet.ui.map.isNamedPlace
+import ch.heigvd.fitmeet.ui.map.rememberPlaceName
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -43,6 +45,8 @@ fun ActivityDetailScreen(
     // the activity already carries it; kept as an override for callers that
     // track the joined events on their side
     isJoined: Boolean = false,
+    // who attends, in the order the server gave: organiser first
+    attendeeNames: List<String> = emptyList(),
     showJoinButton: Boolean = true,
     showLeaveButton: Boolean = false,
     isLeaving: Boolean = false,
@@ -51,6 +55,9 @@ fun ActivityDetailScreen(
     modifier: Modifier = Modifier,
 ) {
     val uriHandler = LocalUriHandler.current
+    // the sheet has room for the street, not just the town: this is the
+    // closer look at the spot the card only summarises
+    val resolved = rememberPlaceName(activity.latitude, activity.longitude)
     Column(
         modifier = modifier
             // fillMaxWidth and not fillMaxSize: inside a bottom sheet the
@@ -108,9 +115,22 @@ fun ActivityDetailScreen(
                 InfoLine("Quand", activity.dateTime)
                 InfoLine(
                     label = "Où",
-                    value = activity.place,
+                    value = when {
+                        // the organiser's own name for the spot wins: they
+                        // knew to write "FC Forward" and the geocoder did not
+                        activity.place.isNamedPlace() -> activity.place
+                        resolved != null -> resolved.address
+                        else -> "Voir sur la carte"
+                    },
                     onClick = activity.mapUrl?.let { mapUrl -> { uriHandler.openUri(mapUrl) } },
                 )
+                // the street under the town, when the two differ and the
+                // organiser named the place themselves
+                if (activity.place.isNamedPlace() && resolved != null &&
+                    !activity.place.contains(resolved.city, ignoreCase = true)
+                ) {
+                    InfoLine("", resolved.address)
+                }
                 if (organizer.isNotBlank()) InfoLine("Organisé par", organizer)
             }
 
@@ -122,7 +142,11 @@ fun ActivityDetailScreen(
                 Text("Participants", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 Text(activity.attendance, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             }
-            AvatarStack(count = activity.participants, maxVisible = 5)
+            AvatarStack(
+                count = activity.participants,
+                initials = attendeeNames.map { it.initials() },
+                maxVisible = 5,
+            )
 
             if (showJoinButton) {
                 // same three states as the card. the state comes from the
@@ -197,4 +221,15 @@ private fun ActivityDetailScreenPreview() {
         organizer = "Pierre Gellet",
         description = "Match amical sur gazon. Prévoir des crampons et un maillot clair.",
     )
+}
+
+// "Mirco Profico" -> "MP", "Cher" -> "CH". the same two letters the profile
+// header shows, from a display name rather than from a first and last name.
+private fun String.initials(): String {
+    val words = trim().split(' ', '-').filter { it.isNotBlank() }
+    return when (words.size) {
+        0 -> ""
+        1 -> words[0].take(2)
+        else -> "${words.first().first()}${words.last().first()}"
+    }.uppercase()
 }
