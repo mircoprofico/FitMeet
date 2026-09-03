@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -39,7 +40,7 @@ import fitmeet.shared.generated.resources.Res
 import fitmeet.shared.generated.resources.logo
 import org.jetbrains.compose.resources.painterResource
 
-private val Navy = Color(0xFF102E53)
+private val Navy = Color(0xFF0B2545)
 private val Green = Color(0xFF429A72)
 private val LightText = Color(0xFFE6E7EA)
 
@@ -59,7 +60,7 @@ fun onboarding_1_name_birthdate(
 
     MaterialTheme {
         Column(
-            modifier = Modifier.fillMaxSize().background(Navy).padding(horizontal = 28.dp, vertical = 48.dp),
+            modifier = Modifier.fillMaxSize().background(Navy).statusBarsPadding().padding(horizontal = 28.dp, vertical = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(modifier = Modifier.height(32.dp))

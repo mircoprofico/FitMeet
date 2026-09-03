@@ -54,7 +54,7 @@ import ch.heigvd.fitmeet.ui.activities.ActivityDetailScreen
 import kotlinx.coroutines.launch
 
 
-private val Navy = Color(0xFF102E53)
+private val Navy = Color(0xFF0B2545)
 private val Green = Color(0xFF429A72)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,7 +104,7 @@ fun ConversationScreen(
     }
     val backgroundColor = Color(0xFFDDDDDD)
     val separationColor = Color(0xFFBBBBBB)
-    val textColor = Color(0xFF102E53)
+    val textColor = Color(0xFF0B2545)
     var currentMessage by remember { mutableStateOf("") }
 
 

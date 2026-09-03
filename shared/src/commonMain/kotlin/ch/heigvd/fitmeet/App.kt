@@ -1,6 +1,10 @@
 package ch.heigvd.fitmeet
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -87,6 +91,14 @@ fun App(
       val currentDestination = backStackEntry?.destination
 
       Scaffold(
+          // the screens reach the top edge themselves. with the status bar
+          // inset applied here, the scaffold's own background showed as a
+          // pale strip above every coloured screen; each screen now adds
+          // statusBarsPadding to its content instead, so its background
+          // goes all the way up and nothing sits under the clock.
+          contentWindowInsets = WindowInsets.safeDrawing.only(
+              WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom,
+          ),
           bottomBar = {
 
               if (currentDestination?.hierarchy?.any {

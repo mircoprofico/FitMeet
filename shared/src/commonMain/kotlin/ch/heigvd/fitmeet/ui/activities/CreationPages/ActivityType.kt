@@ -43,7 +43,7 @@ import ch.heigvd.fitmeet.ui.theme.Sport
 import org.jetbrains.compose.resources.painterResource
 
 
-private val Navy = Color(0xFF102E53)
+private val Navy = Color(0xFF0B2545)
 private val Green = Color(0xFF429A72)
 @Preview
 @Composable
