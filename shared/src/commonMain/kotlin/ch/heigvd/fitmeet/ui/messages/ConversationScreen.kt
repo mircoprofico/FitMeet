@@ -176,7 +176,7 @@ fun ConversationScreen(
             }
 
             when {
-                isLoading -> Text("Chargement des messages...", modifier = Modifier.padding(24.dp))
+                isLoading -> Text("Chargement des messages...", modifier = Modifier.padding(24.dp).weight(1f))
                 errorMessage != null -> Text(
                     text = errorMessage.orEmpty(),
                     modifier = Modifier.padding(24.dp),
