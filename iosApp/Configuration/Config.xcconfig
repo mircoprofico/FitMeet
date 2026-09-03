@@ -1,5 +1,9 @@
 TEAM_ID=
 
+// Supabase publishable credentials are safe to bundle in a client app. Keep
+// private/service-role credentials out of this file.
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_k1-vr5-QcPqZVRG57s4OKQ_bTnB9iqI
+
 PRODUCT_NAME=FitMeet
 PRODUCT_BUNDLE_IDENTIFIER=ch.heigvd.fitmeet.FitMeet$(TEAM_ID)
 

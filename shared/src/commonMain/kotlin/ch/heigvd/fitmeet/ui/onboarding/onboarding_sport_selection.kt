@@ -9,7 +9,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -57,23 +60,19 @@ fun onboarding_2_sports(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Navy)
-                .padding(horizontal = 28.dp, vertical = 48.dp),
+                .safeContentPadding()
+                .padding(horizontal = 28.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
-
             Image(
                 painter = painterResource(Res.drawable.logo),
                 contentDescription = "FitMeet",
-                modifier = Modifier.height(84.dp),
+                modifier = Modifier.height(64.dp),
             )
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            Column(
-                modifier = Modifier.widthIn(max = 420.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
+            Column(modifier = Modifier.widthIn(max = 420.dp)) {
                 Text(
                     text = "Quels sports pratiquez-vous ?",
                     color = LightText,
@@ -86,26 +85,27 @@ fun onboarding_2_sports(
                     color = LightText.copy(alpha = 0.8f),
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
-
-                activities.forEach { activity ->
-                    val isSelected = activity in selectedSports
-                    OutlinedButton(
-                        onClick = {
-                            selectedSports = if (isSelected) selectedSports - activity else selectedSports + activity
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = if (isSelected) Color.White else LightText,
-                            containerColor = if (isSelected) Green else Color.Transparent,
-                        ),
-                    ) {
-                        Text(if (isSelected) "✓  $activity" else activity)
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    items(activities, key = { it }) { activity ->
+                        val isSelected = activity in selectedSports
+                        OutlinedButton(
+                            onClick = {
+                                selectedSports = if (isSelected) selectedSports - activity else selectedSports + activity
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = if (isSelected) Color.White else LightText,
+                                containerColor = if (isSelected) Green else Color.Transparent,
+                            ),
+                        ) {
+                            Text(if (isSelected) "✓  $activity" else activity)
+                        }
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.weight(1f))
 
             message?.let {
                 Text(it.message, color = if (it.isSuccess) Green else Color(0xFFFFB4AB))
