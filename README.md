@@ -33,21 +33,23 @@ level — you create one, or you join one.
 
 ## Features
 
-- Accounts for individuals and clubs, with a sport-level onboarding
-- Create an activity: sport, date, duration, map location, level, capacity, price
+- Sign up and sign in, then an onboarding that records name, birth date and
+  favourite sports
+- Create an activity: sport, title, description, date, time, duration, a spot
+  picked on the map, level and capacity
 - Browse as a list or on a map, from the same data
-- Filter by sport, date and remaining spots, sorted by distance
+- Filter by sport, date and remaining spots, sorted by distance from you
 - Join and leave, with capacity enforced in the database
-- Group chat per activity
+- A group conversation per activity
 
 ## Architecture
 
 ```mermaid
 flowchart TD
-    A["<b>Android</b><br/>MainActivity"] --> S
-    I["<b>iOS</b><br/>SwiftUI wrapper"] --> S
-    S["<b>shared</b> · Kotlin Multiplatform<br/>ui · navigation · model · data"] --> D
-    D[("<b>Supabase</b><br/>PostgreSQL + PostGIS<br/>Auth · Storage · Realtime")]
+    A["Android<br/>MainActivity"] --> S
+    I["iOS<br/>SwiftUI wrapper"] --> S
+    S["shared · Kotlin Multiplatform<br/>ui · navigation<br/>model · data"] --> D
+    D[("Supabase<br/>PostgreSQL + PostGIS<br/>Auth · Storage · Realtime")]
 
     classDef app fill:#FFFFFF,stroke:#DEE5E2,stroke-width:1px,color:#16233A
     classDef shared fill:#3E8E68,stroke:#2E6B4E,stroke-width:1px,color:#FFFFFF
