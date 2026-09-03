@@ -4,6 +4,10 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import android.util.Log
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -51,10 +55,13 @@ actual fun PlatformMap(
     val currentOnActivityClick by rememberUpdatedState(onActivityClick)
     val currentActivitiesById by rememberUpdatedState(activities.associateBy { it.id })
 
-    LaunchedEffect(latitude, longitude) {
-        mapRef?.animateCamera(
-            CameraUpdateFactory.newLatLngZoom(LatLng(latitude, longitude), DEFAULT_ZOOM)
-        )
+    // Center the camera once the map is ready. Using mapRef as key guarantees
+    // this runs after getMapAsync, when the map can actually receive commands.
+    val currentLat by rememberUpdatedState(latitude)
+    val currentLng by rememberUpdatedState(longitude)
+    LaunchedEffect(mapRef) {
+        val map = mapRef ?: return@LaunchedEffect
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(currentLat, currentLng), DEFAULT_ZOOM))
     }
 
     LaunchedEffect(selectedLat, selectedLng, mapRef) {
@@ -89,13 +96,7 @@ actual fun PlatformMap(
                 mapView.onResume()
                 mapView.getMapAsync { map ->
                     mapRef = map
-                    map.setStyle(Style.Builder().fromUri(STYLE_URL)) {
-                        map.moveCamera(
-                            CameraUpdateFactory.newLatLngZoom(
-                                LatLng(latitude, longitude), DEFAULT_ZOOM
-                            )
-                        )
-                    }
+                    map.setStyle(Style.Builder().fromUri(STYLE_URL))
                     map.addOnMapClickListener { latLng ->
                         currentOnMapClick?.invoke(latLng.latitude, latLng.longitude)
                         true
@@ -134,6 +135,19 @@ actual fun LocationEffect(onLocation: (Double, Double) -> Unit) {
         )
     }
 
+    // Re-check on every resume: covers the case where the user grants the
+    // permission from system Settings and then comes back to the app.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                hasPermission = context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted -> hasPermission = granted }
@@ -145,25 +159,36 @@ actual fun LocationEffect(onLocation: (Double, Double) -> Unit) {
     DisposableEffect(hasPermission) {
         if (!hasPermission) return@DisposableEffect onDispose {}
         val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val listener = LocationListener { loc -> callback(loc.latitude, loc.longitude) }
+        val listener = LocationListener { loc ->
+            Log.d("FitMeet/Loc", "live update [${loc.provider}] -> ${loc.latitude},${loc.longitude} acc=${loc.accuracy}m")
+            callback(loc.latitude, loc.longitude)
+        }
         try {
-            // Only use a cached location if it's fresh (< 60 s) — stale fixes
-            // from a previous session would show a wrong place immediately.
             val freshCutoff = System.currentTimeMillis() - 60_000L
-            val fresh = listOfNotNull(
-                lm.getLastKnownLocation(LocationManager.GPS_PROVIDER),
-                lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER),
-                lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER),
-            ).filter { it.time >= freshCutoff }
-             .minByOrNull { it.accuracy }   // lower value = more precise
-            fresh?.let { callback(it.latitude, it.longitude) }
-            // Network with 0 ms interval: delivers a rough fix in ~1 s,
-            // avoiding the 15 s GPS cold-start wait when there is no cache.
+            val candidates = listOf(
+                LocationManager.GPS_PROVIDER,
+                LocationManager.NETWORK_PROVIDER,
+                LocationManager.PASSIVE_PROVIDER,
+            ).mapNotNull { provider ->
+                lm.getLastKnownLocation(provider)?.also { loc ->
+                    val ageS = (System.currentTimeMillis() - loc.time) / 1000
+                    Log.d("FitMeet/Loc", "last[$provider] = ${loc.latitude},${loc.longitude} acc=${loc.accuracy}m age=${ageS}s")
+                }
+            }
+            val fresh = candidates.filter { it.time >= freshCutoff }.minByOrNull { it.accuracy }
+            if (fresh != null) {
+                Log.d("FitMeet/Loc", "using cached -> ${fresh.latitude},${fresh.longitude}")
+                callback(fresh.latitude, fresh.longitude)
+            } else {
+                Log.d("FitMeet/Loc", "no fresh cache, waiting for live fix")
+            }
             if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, listener)
+                Log.d("FitMeet/Loc", "registered NETWORK updates")
             }
             if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2_000L, 0f, listener)
+                Log.d("FitMeet/Loc", "registered GPS updates")
             }
         } catch (_: SecurityException) {}
         onDispose { lm.removeUpdates(listener) }
