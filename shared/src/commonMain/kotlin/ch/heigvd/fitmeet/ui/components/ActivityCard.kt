@@ -45,6 +45,8 @@ fun ActivityCard(
     level: Level,
     participants: Int,
     capacity: Int,
+    isJoined: Boolean = false,
+    canLeave: Boolean = false,
     onClick: () -> Unit,
     onJoin: () -> Unit,
     modifier: Modifier = Modifier,
@@ -87,23 +89,26 @@ fun ActivityCard(
                         Text(
                             text = title,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
+                            fontSize = 16.sp,
                             maxLines = 1, // one line only, long titles get an ellipsis
                             overflow = TextOverflow.Ellipsis,
                         )
                         // date and place go together, tighter than with the title
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        // tight: lineHeight does the separating, no extra gap needed
+                        Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
                             // one line each too: a long place name would wrap
                             // and push the card past its fixed height
                             Text(
                                 text = dateTime,
-                                fontSize = 12.sp,
+                                fontSize = 13.sp,
+                                lineHeight = 17.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
                             Text(
                                 text = place,
-                                fontSize = 12.sp,
+                                fontSize = 13.sp,
+                                lineHeight = 17.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -112,7 +117,7 @@ fun ActivityCard(
                     Text(
                         text = "$participants/$capacity",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
+                        fontSize = 15.sp,
                         textAlign = TextAlign.End,
                         // fixed width so "12/12" does not steal room from the
                         // title: every card wraps at the same place
@@ -124,16 +129,31 @@ fun ActivityCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     LevelChip(level)
                     Spacer(Modifier.weight(1f))
+                    // three states: join, leave in red, or full and disabled
+                    val full = participants >= capacity
                     Button(
                         onClick = onJoin,
+                        enabled = isJoined || !full,
                         modifier = Modifier.width(111.dp).height(27.dp),
                         contentPadding = PaddingValues(0.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF3E8E68),
+                            containerColor = when {
+                                isJoined -> Color(0xFFCF3838)
+                                else -> Color(0xFF3E8E68)
+                            },
+                            disabledContainerColor = Color(0xFFB9C2BC),
                         ),
                         shape = RoundedCornerShape(8.dp),
                     ) {
-                        Text("Rejoindre", fontSize = 12.sp)
+                        Text(
+                            text = when {
+                                isJoined && canLeave -> "Quitter"
+                                isJoined -> "Inscrit"
+                                full -> "Complet"
+                                else -> "Rejoindre"
+                            },
+                            fontSize = 13.sp,
+                        )
                     }
                 }
             }
