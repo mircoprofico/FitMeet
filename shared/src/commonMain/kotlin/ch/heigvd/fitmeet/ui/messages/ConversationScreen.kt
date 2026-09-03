@@ -21,11 +21,14 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,6 +49,7 @@ import ch.heigvd.fitmeet.data.messages.ConversationMessage
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
 import ch.heigvd.fitmeet.navigation.ActivityList
 import ch.heigvd.fitmeet.navigation.Conversation
+import ch.heigvd.fitmeet.ui.activities.ActivityDetailScreen
 import ch.heigvd.fitmeet.ui.activities.activityData
 import ch.heigvd.fitmeet.ui.activities.reset
 import kotlinx.coroutines.launch
@@ -53,6 +57,7 @@ import kotlinx.coroutines.launch
 
 private val Navy = Color(0xFF102E53)
 private val Green = Color(0xFF429A72)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationScreen(
     conversationId: String = "",
@@ -66,7 +71,7 @@ fun ConversationScreen(
     val currentUserId = conversationRepository.currentUserId()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-
+    var showDetails by remember { mutableStateOf(false) }
 
 
 
@@ -156,7 +161,9 @@ fun ConversationScreen(
                     Spacer(modifier = Modifier.weight(1f))
 
                     Button(
-                        onClick = {},
+                        onClick = {
+                            showDetails = true
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFEEEEEE),
                         ),
@@ -302,5 +309,108 @@ fun ConversationScreen(
                 }
             }
         }
+
+        if (showDetails) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    showDetails = false
+                },
+                sheetState = rememberModalBottomSheetState(
+                    skipPartiallyExpanded = true
+                )
+            ) {
+                ActivityInfoPlaceholder() // todo Là on doit utiliser la vrai activité
+
+            }
+        }
+
+    }
+}
+
+// todo supprimer ce truc une fois qu'on a la vrai activité
+@Composable
+private fun ActivityInfoPlaceholder() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                start = 24.dp,
+                end = 24.dp,
+                bottom = 32.dp
+            )
+    ) {
+        Text(
+            text = "Informations sur l'activité",
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold,
+            color = Navy
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = "🏀 Basketball entre amis",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "📅 Samedi 12 septembre 2026",
+            fontSize = 18.sp,
+            color = Color.DarkGray
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "🕐 14:00 – 16:00",
+            fontSize = 18.sp,
+            color = Color.DarkGray
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "📍 Yverdon-les-Bains",
+            fontSize = 18.sp,
+            color = Color.DarkGray
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "🎯 Niveau : Intermédiaire",
+            fontSize = 18.sp,
+            color = Color.DarkGray
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "👥 Participants : 5 / 10",
+            fontSize = 18.sp,
+            color = Color.DarkGray
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Description",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Navy
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = "Une partie de basketball conviviale pour passer " +
+                    "un bon moment et rencontrer d'autres joueurs.",
+            fontSize = 17.sp,
+            color = Color.DarkGray
+        )
     }
 }
