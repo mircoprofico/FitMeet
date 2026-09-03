@@ -45,6 +45,8 @@ private val Line = Color(0xFFDDE5DD)
 @Composable
 fun SportFilterBar(
     selected: Set<Sport>,
+    // every active filter, sports included, not just the pills
+    activeFilters: Int = selected.size,
     onToggle: (Sport) -> Unit,
     onOpenFilters: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -54,7 +56,7 @@ fun SportFilterBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         FilterButton(
-            count = selected.size,
+            count = activeFilters,
             onClick = onOpenFilters,
             modifier = Modifier.padding(start = 12.dp, end = 8.dp),
         )
