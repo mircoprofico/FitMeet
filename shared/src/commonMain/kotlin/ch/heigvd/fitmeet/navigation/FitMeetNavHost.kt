@@ -21,12 +21,12 @@ import ch.heigvd.fitmeet.data.activityCreation.EventRepository
 import ch.heigvd.fitmeet.data.profile.OnboardingState
 import ch.heigvd.fitmeet.data.profile.ProfileRepository
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
-import ch.heigvd.fitmeet.ui.activities.ActivityDetailScreen
 import ch.heigvd.fitmeet.ui.activities.ActivityListScreen
 import ch.heigvd.fitmeet.ui.activities.ActivityListViewModel
 import ch.heigvd.fitmeet.ui.activities.CreateActivityScreen
 import ch.heigvd.fitmeet.ui.auth.LoginScreen
 import ch.heigvd.fitmeet.ui.auth.OnboardingScreen
+import ch.heigvd.fitmeet.ui.auth.PasswordResetScreen
 import ch.heigvd.fitmeet.ui.auth.RegisterScreen
 import ch.heigvd.fitmeet.ui.map.MapScreen
 import ch.heigvd.fitmeet.ui.messages.ConversationListScreen
@@ -77,6 +77,16 @@ fun FitMeetNavHost(
             composable<Register> {
                 RegisterScreen(onRegister = authRepository::signUp)
             }
+            composable<PasswordReset> {
+                PasswordResetScreen(
+                    onPasswordReset = authRepository::updatePassword,
+                    onPasswordResetSuccess = {
+                        navController.navigate(Login) {
+                            popUpTo(PasswordReset) { inclusive = true }
+                        }
+                    },
+                )
+            }
             composable<Onboarding> {
                 OnboardingScreen(
                     state = onboardingState,
@@ -112,7 +122,6 @@ fun FitMeetNavHost(
                 val state by viewModel.uiState.collectAsState()
                 ActivityListScreen(
                     state = state,
-                    onActivityClick = { id -> navController.navigate(ActivityDetail(id)) },
                     onRetry = viewModel::refresh,
                 )
             }
@@ -150,9 +159,6 @@ fun FitMeetNavHost(
                 EditProfileScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
             }
 
-            composable<ActivityDetail> { entry ->
-                ActivityDetailScreen(activityId = entry.toRoute<ActivityDetail>().activityId)
-            }
             composable<Conversation> { entry ->
                 val conversation = entry.toRoute<Conversation>()
                 ConversationScreen(

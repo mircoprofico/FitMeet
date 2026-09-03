@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
 // --- Login, Register and Onboarding (François) ---
 @Serializable object Login
 @Serializable object Register
+@Serializable object PasswordReset
 @Serializable object Onboarding
 @Serializable object OnboardingSports
 

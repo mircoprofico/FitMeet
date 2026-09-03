@@ -9,11 +9,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,6 +34,7 @@ import ch.heigvd.fitmeet.ui.components.EmptyState
 import ch.heigvd.fitmeet.ui.components.SportFilterBar
 import ch.heigvd.fitmeet.ui.components.ErrorState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityListScreen(
     state: ActivityListUiState = ActivityListUiState.Success(sampleActivities),
@@ -38,6 +45,10 @@ fun ActivityListScreen(
 ) {
     // a Set, so a sport cannot be picked twice. empty means "no filter".
     var selectedSports by remember { mutableStateOf(emptySet<Sport>()) }
+    // the activity shown in the bottom sheet, null when it is closed.
+    // kept here and not in the navigation: the list stays behind the sheet
+    // and never loses its scroll position.
+    var selected by remember { mutableStateOf<Activity?>(null) }
 
     // the phone position, from the same source the map uses.
     // null until the user answers the permission prompt.
@@ -117,9 +128,22 @@ fun ActivityListScreen(
                         level = activity.level,
                         participants = activity.participants,
                         capacity = activity.capacity,
-                        onClick = { onActivityClick(activity.id) },
+                        onClick = {
+                            selected = activity
+                            onActivityClick(activity.id)
+                        },
                         onJoin = { onJoin(activity.id) },
                     )
+                }
+            }
+
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            selected?.let { activity ->
+                ModalBottomSheet(
+                    onDismissRequest = { selected = null },
+                    sheetState = sheetState,
+                ) {
+                    ActivityDetailScreen(activity = activity)
                 }
             }
         }
