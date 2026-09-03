@@ -101,7 +101,8 @@ fun ActivityListScreen(
                 // contentPadding is the space before the first card and after the
                 // last one, spacedBy below is the gap between two cards
                 contentPadding = PaddingValues(top = 20.dp, bottom = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(11.dp), // gap measured on the mockup
+                verticalArrangement = Arrangement.spacedBy(14.dp), // 11 on the mockup, a bit more here so
+                    // the pale tinted blocks do not run into each other
             ) {
                 items(visible, key = { it.id }) { activity ->
                     ActivityCard(
