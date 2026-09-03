@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import ch.heigvd.fitmeet.model.Activity
 
 private const val DEFAULT_LAT = 46.5197
 private const val DEFAULT_LNG = 6.6323
@@ -16,13 +17,19 @@ fun MapScreen(
     onMapClick: ((Double, Double) -> Unit)? = null,
     selectedLat: Double? = null,
     selectedLng: Double? = null,
+    activities: List<Activity> = emptyList(),
+    onActivityClick: ((Activity) -> Unit)? = null,
 ) {
-    var latitude by remember { mutableStateOf(DEFAULT_LAT) }
-    var longitude by remember { mutableStateOf(DEFAULT_LNG) }
+    // when a location is already chosen (e.g. confirmation screen), start the
+    // camera there and skip LocationEffect so it does not override the pin.
+    var latitude by remember { mutableStateOf(selectedLat ?: DEFAULT_LAT) }
+    var longitude by remember { mutableStateOf(selectedLng ?: DEFAULT_LNG) }
 
-    LocationEffect { lat, lng ->
-        latitude = lat
-        longitude = lng
+    if (selectedLat == null) {
+        LocationEffect { lat, lng ->
+            latitude = lat
+            longitude = lng
+        }
     }
 
     PlatformMap(
@@ -32,6 +39,8 @@ fun MapScreen(
         onMapClick = onMapClick,
         selectedLat = selectedLat,
         selectedLng = selectedLng,
+        activities = activities,
+        onActivityClick = onActivityClick,
     )
 }
 
@@ -43,6 +52,8 @@ expect fun PlatformMap(
     onMapClick: ((Double, Double) -> Unit)? = null,
     selectedLat: Double? = null,
     selectedLng: Double? = null,
+    activities: List<Activity> = emptyList(),
+    onActivityClick: ((Activity) -> Unit)? = null,
 )
 
 @Composable

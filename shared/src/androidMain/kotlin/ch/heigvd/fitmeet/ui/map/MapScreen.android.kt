@@ -7,6 +7,7 @@ import android.location.LocationManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import android.location.LocationListener
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import ch.heigvd.fitmeet.model.Activity
 import org.maplibre.android.MapLibre
 import org.maplibre.android.annotations.Marker
 import org.maplibre.android.annotations.MarkerOptions
@@ -37,12 +39,17 @@ actual fun PlatformMap(
     onMapClick: ((Double, Double) -> Unit)?,
     selectedLat: Double?,
     selectedLng: Double?,
+    activities: List<Activity>,
+    onActivityClick: ((Activity) -> Unit)?,
 ) {
     val context = LocalContext.current
     var mapRef by remember { mutableStateOf<MapLibreMap?>(null) }
     val mapViewRef = remember { mutableStateOf<MapView?>(null) }
     var selectedMarker by remember { mutableStateOf<Marker?>(null) }
+    val activityMarkers = remember { mutableMapOf<String, Marker>() }
     val currentOnMapClick by rememberUpdatedState(onMapClick)
+    val currentOnActivityClick by rememberUpdatedState(onActivityClick)
+    val currentActivitiesById by rememberUpdatedState(activities.associateBy { it.id })
 
     LaunchedEffect(latitude, longitude) {
         mapRef?.animateCamera(
@@ -56,6 +63,20 @@ actual fun PlatformMap(
         selectedMarker = if (selectedLat != null && selectedLng != null) {
             map.addMarker(MarkerOptions().position(LatLng(selectedLat, selectedLng)))
         } else null
+    }
+
+    LaunchedEffect(activities, mapRef) {
+        val map = mapRef ?: return@LaunchedEffect
+        activityMarkers.values.forEach { map.removeMarker(it) }
+        activityMarkers.clear()
+        activities.forEach { activity ->
+            val lat = activity.latitude ?: return@forEach
+            val lng = activity.longitude ?: return@forEach
+            val marker = map.addMarker(
+                MarkerOptions().position(LatLng(lat, lng)).title(activity.id),
+            )
+            activityMarkers[activity.id] = marker
+        }
     }
 
     AndroidView(
@@ -79,6 +100,13 @@ actual fun PlatformMap(
                         currentOnMapClick?.invoke(latLng.latitude, latLng.longitude)
                         true
                     }
+                    map.setOnMarkerClickListener { marker: Marker ->
+                        val activity = currentActivitiesById[marker.title]
+                        if (activity != null) {
+                            currentOnActivityClick?.invoke(activity)
+                            true
+                        } else false
+                    }
                 }
             }
         },
@@ -97,6 +125,7 @@ actual fun PlatformMap(
 @Composable
 actual fun LocationEffect(onLocation: (Double, Double) -> Unit) {
     val context = LocalContext.current
+    val callback by rememberUpdatedState(onLocation)
 
     var hasPermission by remember {
         mutableStateOf(
@@ -113,13 +142,30 @@ actual fun LocationEffect(onLocation: (Double, Double) -> Unit) {
         if (!hasPermission) permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
     }
 
-    LaunchedEffect(hasPermission) {
-        if (!hasPermission) return@LaunchedEffect
+    DisposableEffect(hasPermission) {
+        if (!hasPermission) return@DisposableEffect onDispose {}
+        val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val listener = LocationListener { loc -> callback(loc.latitude, loc.longitude) }
         try {
-            val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            val location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-                ?: lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-            location?.let { onLocation(it.latitude, it.longitude) }
+            // Only use a cached location if it's fresh (< 60 s) — stale fixes
+            // from a previous session would show a wrong place immediately.
+            val freshCutoff = System.currentTimeMillis() - 60_000L
+            val fresh = listOfNotNull(
+                lm.getLastKnownLocation(LocationManager.GPS_PROVIDER),
+                lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER),
+                lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER),
+            ).filter { it.time >= freshCutoff }
+             .minByOrNull { it.accuracy }   // lower value = more precise
+            fresh?.let { callback(it.latitude, it.longitude) }
+            // Network with 0 ms interval: delivers a rough fix in ~1 s,
+            // avoiding the 15 s GPS cold-start wait when there is no cache.
+            if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, listener)
+            }
+            if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2_000L, 0f, listener)
+            }
         } catch (_: SecurityException) {}
+        onDispose { lm.removeUpdates(listener) }
     }
 }

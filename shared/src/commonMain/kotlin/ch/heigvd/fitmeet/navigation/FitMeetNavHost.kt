@@ -28,6 +28,7 @@ import ch.heigvd.fitmeet.ui.auth.OnboardingScreen
 import ch.heigvd.fitmeet.ui.auth.PasswordResetScreen
 import ch.heigvd.fitmeet.ui.auth.RegisterScreen
 import ch.heigvd.fitmeet.ui.map.MapScreen
+import ch.heigvd.fitmeet.ui.map.MapTabScreen
 import ch.heigvd.fitmeet.ui.messages.ConversationListScreen
 import ch.heigvd.fitmeet.ui.messages.ConversationScreen
 import ch.heigvd.fitmeet.ui.profile.EditProfileScreen
@@ -130,7 +131,7 @@ fun FitMeetNavHost(
                     onRetry = viewModel::refresh,
                 )
             }
-            composable<MapTab> { MapScreen() }
+            composable<MapTab> { MapTabScreen(activityRepository) }
             composable<CreateActivity> { CreateActivityScreen(eventRepository, navController) }
             composable<Messages> {
                 TemporaryNav(
