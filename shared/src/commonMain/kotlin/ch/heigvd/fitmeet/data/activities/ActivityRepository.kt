@@ -10,6 +10,12 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
+// one name from event_attendee_names, nothing else about the person
+@Serializable
+private data class AttendeeRow(
+    @SerialName("display_name") val displayName: String,
+)
+
 @Serializable
 private data class EventRow(
     val id: String,
@@ -41,6 +47,11 @@ interface ActivityRepository {
     suspend fun join(activityId: String): Result<Unit>
 
     suspend fun leave(activityId: String): Result<Unit>
+
+    // who attends, for the avatar stack. names only: the policy on
+    // event_participants hides the rows themselves, so this goes through a
+    // function that returns nothing else about them.
+    suspend fun attendeeNames(activityId: String): Result<List<String>>
 }
 
 class SupabaseActivityRepository(
@@ -58,8 +69,7 @@ class SupabaseActivityRepository(
         supabase.postgrest.rpc("join_event", buildJsonObject {
             put("p_event_id", activityId)
         })
-        Unit
-    }
+    }.map { }
 
     override suspend fun leave(activityId: String): Result<Unit> = runCatching {
         val userId = supabase.auth.currentUserOrNull()?.id
@@ -72,7 +82,12 @@ class SupabaseActivityRepository(
                 eq("user_id", userId)
             }
         }
-        Unit
+    }.map { }
+
+    override suspend fun attendeeNames(activityId: String): Result<List<String>> = runCatching {
+        supabase.postgrest.rpc("event_attendee_names", buildJsonObject {
+            put("p_event_id", activityId)
+        }).decodeList<AttendeeRow>().map { it.displayName }
     }
 }
 
@@ -98,4 +113,7 @@ object PreviewActivityRepository : ActivityRepository {
     override suspend fun join(activityId: String) = Result.success(Unit)
 
     override suspend fun leave(activityId: String) = Result.success(Unit)
+
+    override suspend fun attendeeNames(activityId: String) =
+        Result.success(listOf("Mirco Profico", "Pierre Gellet", "Francois Bernard"))
 }

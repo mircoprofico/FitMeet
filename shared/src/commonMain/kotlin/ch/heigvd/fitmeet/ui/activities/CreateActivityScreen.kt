@@ -58,7 +58,7 @@ fun CreateActivityScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFF102E53),
+        containerColor = Color(0xFF0B2545),
         bottomBar = {
             Button(
                 onClick = { currentScreen.value += 1 },

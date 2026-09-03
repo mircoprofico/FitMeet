@@ -51,38 +51,45 @@ data class Activity(
             capacity: Int,
             isJoined: Boolean = false,
             isOrganizer: Boolean = false,
-        ) = Activity(
-            id = id,
-            title = title,
-            description = description.orEmpty(),
-            sport = when (sportSlug) {
-                "football" -> Sport.FOOTBALL
-                "basketball" -> Sport.BASKETBALL
-                "volleyball" -> Sport.VOLLEYBALL
-                "tennis" -> Sport.TENNIS
-                "badminton" -> Sport.BADMINTON
-                "running" -> Sport.RUNNING
-                "cycling" -> Sport.CYCLING
-                "hiking" -> Sport.HIKING
-                else -> Sport.OTHER
-            },
-            startsAt = startsAt,
-            dateTime = displayDate(startsAt),
-            place = locationName,
-            mapUrl = googleMapsUrl(location),
-            latitude = pointOf(location)?.first,
-            longitude = pointOf(location)?.second,
-            level = when (levelSlug) {
-                "beginner" -> Level.BEGINNER
-                "intermediate" -> Level.INTERMEDIATE
-                "advanced" -> Level.ADVANCED
-                else -> Level.ALL
-            },
-            participants = participants,
-            capacity = capacity,
-            isJoined = isJoined || isOrganizer,
-            isOrganizer = isOrganizer,
-        )
+        ): Activity {
+            // parsed once: the map url and the two numbers all come from the
+            // same POINT, running the regex three times only cost time
+            val point = pointOf(location)
+            return Activity(
+                id = id,
+                title = title,
+                description = description.orEmpty(),
+                sport = when (sportSlug) {
+                    "football" -> Sport.FOOTBALL
+                    "basketball" -> Sport.BASKETBALL
+                    "volleyball" -> Sport.VOLLEYBALL
+                    "tennis" -> Sport.TENNIS
+                    "badminton" -> Sport.BADMINTON
+                    "running" -> Sport.RUNNING
+                    "cycling" -> Sport.CYCLING
+                    "hiking" -> Sport.HIKING
+                    else -> Sport.OTHER
+                },
+                startsAt = startsAt,
+                dateTime = displayDate(startsAt),
+                place = locationName,
+                mapUrl = point?.let { (lat, lng) ->
+                    "https://www.google.com/maps/search/?api=1&query=$lat,$lng"
+                },
+                latitude = point?.first,
+                longitude = point?.second,
+                level = when (levelSlug) {
+                    "beginner" -> Level.BEGINNER
+                    "intermediate" -> Level.INTERMEDIATE
+                    "advanced" -> Level.ADVANCED
+                    else -> Level.ALL
+                },
+                participants = participants,
+                capacity = capacity,
+                isJoined = isJoined || isOrganizer,
+                isOrganizer = isOrganizer,
+            )
+        }
 
         private fun displayDate(startsAt: String): String {
             val date = startsAt.substringBefore('T')
@@ -100,17 +107,6 @@ data class Activity(
             val lat = g[2].toDoubleOrNull() ?: return null
             val lng = g[1].toDoubleOrNull() ?: return null
             return lat to lng
-        }
-
-        private fun googleMapsUrl(location: String?): String? {
-            val coordinates = location
-                ?.trim()
-                ?.let { POINT_PATTERN.matchEntire(it) }
-                ?.groupValues
-                ?: return null
-            val longitude = coordinates[1]
-            val latitude = coordinates[2]
-            return "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude"
         }
 
         private val POINT_PATTERN = Regex(

@@ -47,7 +47,7 @@
     import org.jetbrains.compose.resources.painterResource
 
 
-    private val Navy = Color(0xFF102E53)
+    private val Navy = Color(0xFF0B2545)
     private val Green = Color(0xFF429A72)
     @Composable
     fun ActivityConfirmation(
@@ -194,6 +194,7 @@
                                 time = activityData.time,
                                 duration = activityData.duration,
                                 position = activityData.position,
+                                positionName = activityData.positionName,
                                 name = activityData.name,
                                 description = activityData.description,
                                 difficulty = activityData.difficulty.label,
