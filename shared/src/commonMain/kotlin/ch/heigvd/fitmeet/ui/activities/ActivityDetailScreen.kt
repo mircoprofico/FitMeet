@@ -44,7 +44,7 @@ import org.jetbrains.compose.resources.painterResource
 fun ActivityDetailScreen(
     activity: Activity,
     organizer: String = "",
-    description: String = "",
+    description: String = activity.description,
     isJoined: Boolean = false,
     showJoinButton: Boolean = true,
     onJoin: () -> Unit = {},
