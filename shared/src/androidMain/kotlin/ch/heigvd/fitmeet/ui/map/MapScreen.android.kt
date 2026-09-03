@@ -147,18 +147,23 @@ actual fun LocationEffect(onLocation: (Double, Double) -> Unit) {
         val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val listener = LocationListener { loc -> callback(loc.latitude, loc.longitude) }
         try {
-            // GPS first: more reliable on emulator and physical devices
-            val last = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-                ?: lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
-            last?.let { callback(it.latitude, it.longitude) }
-            // 0f minimum distance: fire on every update regardless of movement,
-            // so coming back to the map tab re-centres immediately
+            // Only use a cached location if it's fresh (< 60 s) — stale fixes
+            // from a previous session would show a wrong place immediately.
+            val freshCutoff = System.currentTimeMillis() - 60_000L
+            val fresh = listOfNotNull(
+                lm.getLastKnownLocation(LocationManager.GPS_PROVIDER),
+                lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER),
+                lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER),
+            ).filter { it.time >= freshCutoff }
+             .minByOrNull { it.accuracy }   // lower value = more precise
+            fresh?.let { callback(it.latitude, it.longitude) }
+            // Network with 0 ms interval: delivers a rough fix in ~1 s,
+            // avoiding the 15 s GPS cold-start wait when there is no cache.
+            if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, listener)
+            }
             if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2_000L, 0f, listener)
-            }
-            if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2_000L, 0f, listener)
             }
         } catch (_: SecurityException) {}
         onDispose { lm.removeUpdates(listener) }
