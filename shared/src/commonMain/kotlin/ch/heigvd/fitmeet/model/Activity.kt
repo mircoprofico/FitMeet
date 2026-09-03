@@ -9,6 +9,7 @@ import ch.heigvd.fitmeet.ui.theme.Sport
 data class Activity(
     val id: String,
     val title: String,
+    val description: String = "",
     val sport: Sport,
     // iso 8601, sortable as plain text: year then month then day.
     // this is what starts_at holds in the events table.
@@ -34,12 +35,14 @@ data class Activity(
             startsAt: String,
             locationName: String,
             location: String? = null,
+            description: String? = null,
             levelSlug: String,
             participants: Int,
             capacity: Int,
         ) = Activity(
             id = id,
             title = title,
+            description = description.orEmpty(),
             sport = when (sportSlug) {
                 "football" -> Sport.FOOTBALL
                 "basketball" -> Sport.BASKETBALL
