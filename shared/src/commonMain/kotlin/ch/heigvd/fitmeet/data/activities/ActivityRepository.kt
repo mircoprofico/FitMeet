@@ -4,13 +4,12 @@ import ch.heigvd.fitmeet.model.Activity
 import ch.heigvd.fitmeet.ui.theme.Level
 import ch.heigvd.fitmeet.ui.theme.Sport
 import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// what one row of the events table looks like. field names match the
-// columns, @SerialName maps snake_case to camelCase.
-// private: nobody outside this file needs to know the table shape.
 @Serializable
 private data class EventRow(
     val id: String,
@@ -22,12 +21,19 @@ private data class EventRow(
     val capacity: Int,
 )
 
-// who can read activities. the screen depends on this interface, not on
-// supabase, so previews can be given a fake one instead.
+@Serializable
+private data class EventParticipantInsert(
+    @SerialName("event_id") val eventId: String,
+    @SerialName("user_id") val userId: String,
+)
+
+@Serializable
+private data class ParticipantEventIdRow(@SerialName("event_id") val eventId: String)
+
 interface ActivityRepository {
-    // suspend: it waits for the network without freezing the ui.
-    // Result holds either the list or the error, no exception thrown.
     suspend fun nearbyActivities(): Result<List<Activity>>
+    suspend fun joinEvent(eventId: String): Result<Unit>
+    suspend fun participatingEventIds(): Result<Set<String>>
 }
 
 class SupabaseActivityRepository(
@@ -40,10 +46,28 @@ class SupabaseActivityRepository(
             .decodeList<EventRow>()
             .map { it.toActivity() }
     }
+
+    override suspend fun joinEvent(eventId: String): Result<Unit> = runCatching {
+        val userId = supabase.auth.currentUserOrNull()?.id
+            ?: error("Non authentifié")
+        supabase.from("event_participants").insert(
+            EventParticipantInsert(eventId = eventId, userId = userId),
+        )
+    }
+
+    override suspend fun participatingEventIds(): Result<Set<String>> = runCatching {
+        val userId = supabase.auth.currentUserOrNull()?.id
+            ?: return@runCatching emptySet()
+        supabase.from("event_participants")
+            .select(columns = Columns.list("event_id")) {
+                filter { eq("user_id", userId) }
+            }
+            .decodeList<ParticipantEventIdRow>()
+            .map { it.eventId }
+            .toSet()
+    }
 }
 
-// the slugs are the ones SupabaseEventRepository writes when creating an
-// event. unknown values fall back instead of crashing the whole list.
 private fun sportOf(slug: String) = when (slug) {
     "football" -> Sport.FOOTBALL
     "basketball" -> Sport.BASKETBALL
@@ -62,9 +86,6 @@ private fun levelOf(slug: String) = when (slug) {
     else -> Level.ALL
 }
 
-// "2026-09-02T14:30:00+00:00" -> "02.09 - 14h30".
-// crude on purpose: proper relative dates ("Aujourd'hui") need a clock
-// and a timezone, which is more than the list needs right now.
 private fun displayDate(startsAt: String): String {
     val date = startsAt.substringBefore('T')
     val time = startsAt.substringAfter('T').take(5)
@@ -82,13 +103,13 @@ private fun EventRow.toActivity() = Activity(
     dateTime = displayDate(startsAt),
     place = locationName,
     level = levelOf(level),
-    // TODO: real count from event_participants, needs a join or a view
     participants = 0,
     capacity = capacity,
 )
 
-// used by previews and when supabase is not configured: no network at all.
 object PreviewActivityRepository : ActivityRepository {
     override suspend fun nearbyActivities(): Result<List<Activity>> =
         Result.success(sampleActivities)
+    override suspend fun joinEvent(eventId: String): Result<Unit> = Result.success(Unit)
+    override suspend fun participatingEventIds(): Result<Set<String>> = Result.success(emptySet())
 }

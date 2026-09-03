@@ -31,6 +31,7 @@ fun ActivityListScreen(
     state: ActivityListUiState = ActivityListUiState.Success(sampleActivities),
     onActivityClick: (String) -> Unit = {},
     onJoin: (String) -> Unit = {},
+    joinedEventIds: Set<String> = emptySet(),
     onRetry: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -96,7 +97,11 @@ fun ActivityListScreen(
                     onDismissRequest = { selected = null },
                     sheetState = sheetState,
                 ) {
-                    ActivityDetailScreen(activity = activity)
+                    ActivityDetailScreen(
+                        activity = activity,
+                        isJoined = activity.id in joinedEventIds,
+                        onJoin = { onJoin(activity.id) },
+                    )
                 }
             }
         }

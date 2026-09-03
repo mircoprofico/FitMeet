@@ -7,8 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-// holds the state of the list screen and talks to the repository.
-// the screen itself stays dumb: it only draws whatever state it gets.
 class ActivityListViewModel(
     private val repository: ActivityRepository,
 ) : ViewModel() {
@@ -16,19 +14,33 @@ class ActivityListViewModel(
     private val _uiState = MutableStateFlow<ActivityListUiState>(ActivityListUiState.Loading)
     val uiState: StateFlow<ActivityListUiState> = _uiState
 
+    private val _joinedEventIds = MutableStateFlow<Set<String>>(emptySet())
+    val joinedEventIds: StateFlow<Set<String>> = _joinedEventIds
+
     init {
         refresh()
+        viewModelScope.launch {
+            repository.participatingEventIds().onSuccess { ids ->
+                _joinedEventIds.value = ids
+            }
+        }
     }
 
     fun refresh() {
-        // launch opens a coroutine, the only place a suspend call is allowed.
-        // viewModelScope cancels it if the user leaves the screen.
         viewModelScope.launch {
             _uiState.value = ActivityListUiState.Loading
             _uiState.value = repository.nearbyActivities().fold(
                 onSuccess = { ActivityListUiState.Success(it) },
                 onFailure = { ActivityListUiState.Error("Impossible de charger les activités") },
             )
+        }
+    }
+
+    fun joinEvent(eventId: String) {
+        viewModelScope.launch {
+            repository.joinEvent(eventId).onSuccess {
+                _joinedEventIds.value = _joinedEventIds.value + eventId
+            }
         }
     }
 }
