@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
                 profileRepository = repositories.profileRepository,
                 conversationRepository = repositories.conversationRepository,
                 eventRepository = repositories.eventRepository,
+                activityRepository = repositories.activityRepository,
                 authenticationCallbackUrl = authenticationCallbackUrl,
             )
         }

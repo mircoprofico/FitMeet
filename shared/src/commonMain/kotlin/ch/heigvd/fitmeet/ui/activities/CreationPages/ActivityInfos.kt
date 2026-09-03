@@ -43,8 +43,10 @@ fun ActivityInfos() {
                 fontSize = 32.sp
             )
             TextField(
+                maxLines = 1,
+                singleLine = true,
                 value = activityData.name,
-                onValueChange = {activityData.name = it},
+                onValueChange = { if(it.length <= 30) activityData.name = it },
                 placeholder ={Text("Ex: match amical, tour du lac, etc...")},
                 modifier = Modifier.fillMaxWidth().shadow(
                     elevation = 4.dp,
@@ -67,7 +69,7 @@ fun ActivityInfos() {
 
             TextField(
                 value = activityData.description,
-                onValueChange = {activityData.description = it},
+                onValueChange = { if(it.length <= 240) activityData.description = it },
                 placeholder ={Text("Donnez des détails supplémentaires...")},
                 singleLine = false,
                 minLines = 5,

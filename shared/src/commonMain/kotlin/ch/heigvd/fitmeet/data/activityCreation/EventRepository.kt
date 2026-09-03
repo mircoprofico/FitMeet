@@ -1,5 +1,6 @@
 package ch.heigvd.fitmeet.data.activityCreation
 
+import ch.heigvd.fitmeet.ui.theme.Sport
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
@@ -63,6 +64,7 @@ class SupabaseEventRepository(
             "Le type de l'activité est obligatoire."
         }
         require(position.startsWith("POINT(")) { "La position de l'activité est invalide." }
+        require(capacity in 1..10_000) { "La capacité de l'activité est invalide." }
 
         val startsAt = parseDateTime(date, time)
         val endsAt = startsAt.plus(duration.coerceAtLeast(0).toLong(), DateTimeUnit.MINUTE)
@@ -78,7 +80,7 @@ class SupabaseEventRepository(
                 locationName = "Position choisie",
                 location = position,
                 level = levelSlug(difficulty),
-                capacity = 12,
+                capacity = capacity,
             ),
         )
     }
@@ -97,15 +99,15 @@ class SupabaseEventRepository(
     }
 
     private fun sportSlug(type: String) = when (type) {
-        "Football" -> "football"
-        "Basketball" -> "basketball"
-        "Volleyball" -> "volleyball"
-        "Tennis" -> "tennis"
-        "Badminton" -> "badminton"
-        "Course" -> "running"
-        "Vélo" -> "cycling"
-        "Randonnée" -> "hiking"
-        "Autre" -> "other"
+        Sport.FOOTBALL.toString() -> "football"
+        Sport.BASKETBALL.toString() -> "basketball"
+        Sport.VOLLEYBALL.toString() -> "volleyball"
+        Sport.TENNIS.toString() -> "tennis"
+        Sport.BADMINTON.toString() -> "badminton"
+        Sport.RUNNING.toString() -> "running"
+        Sport.CYCLING.toString() -> "cycling"
+        Sport.HIKING.toString() -> "hiking"
+        Sport.OTHER.toString() -> "other"
         else -> error("Sport inconnu.")
     }
 
