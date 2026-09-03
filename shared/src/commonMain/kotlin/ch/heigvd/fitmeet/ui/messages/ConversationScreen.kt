@@ -310,6 +310,7 @@ fun ConversationScreen(
             }
         }
 
+
         if (showDetails) {
             ModalBottomSheet(
                 onDismissRequest = {
@@ -320,6 +321,7 @@ fun ConversationScreen(
                 )
             ) {
                 ActivityInfoPlaceholder() // todo Là on doit utiliser la vrai activité
+                // ActivityDetailScreen(activity = activity) <-
 
             }
         }
