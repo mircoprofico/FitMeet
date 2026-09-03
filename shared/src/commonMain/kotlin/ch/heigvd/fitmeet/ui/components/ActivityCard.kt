@@ -138,7 +138,8 @@ fun ActivityCard(
                         contentPadding = PaddingValues(0.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = when {
-                                isJoined -> Color(0xFFCF3838)
+                                isJoined && canLeave -> Color(0xFFCF3838)
+                                isJoined -> Color(0xFF2F6EA5)
                                 else -> Color(0xFF3E8E68)
                             },
                             disabledContainerColor = Color(0xFFB9C2BC),
