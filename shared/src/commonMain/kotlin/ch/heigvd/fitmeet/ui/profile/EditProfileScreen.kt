@@ -62,7 +62,6 @@ fun EditProfileScreen(
 
     var firstName by remember { mutableStateOf(profile.firstName) }
     var lastName by remember { mutableStateOf(profile.lastName) }
-    var city by remember { mutableStateOf(profile.city) }
     var bio by remember { mutableStateOf(profile.bio) }
     var sports by remember { mutableStateOf(profile.sports) }
 
@@ -79,7 +78,6 @@ fun EditProfileScreen(
                             profile.copy(
                                 firstName = firstName.trim(),
                                 lastName = lastName.trim(),
-                                city = city.trim(),
                                 bio = bio.trim(),
                                 sports = sports,
                             )
@@ -114,13 +112,6 @@ fun EditProfileScreen(
                 value = lastName,
                 onValueChange = { lastName = it },
                 label = { Text("Nom") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-            OutlinedTextField(
-                value = city,
-                onValueChange = { city = it },
-                label = { Text("Ville") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )

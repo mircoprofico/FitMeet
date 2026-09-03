@@ -107,7 +107,7 @@ private fun ProfileContent(
             onClick = onEditProfile,
             modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
         ) {
-            Text("✏️ Modifier", color = ColorPrimary, fontSize = 13.sp)
+            Text("Modifier", color = ColorPrimary, fontSize = 13.sp)
         }
     }
 }
@@ -137,11 +137,6 @@ private fun ProfileHeader(profile: UserProfile) {
             text = profile.fullName + ", " + profile.age,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-        )
-        Text(
-            text = "📍 ${profile.city}",
-            fontSize = 14.sp,
-            color = ColorTextSecondary,
         )
         if (profile.bio.isNotBlank()) {
             Text(

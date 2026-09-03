@@ -27,7 +27,7 @@ data class ConversationSummary(
     @SerialName("event_id") val eventId: String,
     val title: String,
     @SerialName("starts_at") val startsAt: String,
-    @SerialName("ends_at") val endsAt: String,
+    @SerialName("ends_at") val endsAt: String? = null,
     @SerialName("location_name") val locationName: String,
     @SerialName("is_organizer") val isOrganizer: Boolean,
     @SerialName("last_message_at") val lastMessageAt: String? = null,

@@ -19,7 +19,7 @@ interface ProfileRepository {
         birthdate: String,
         selectedSports: Set<String>,
     ): AuthActionResult
-    suspend fun fetchProfile(): UserProfile?
+    suspend fun fetchProfile(): Result<UserProfile>
     suspend fun updateProfile(profile: UserProfile): AuthActionResult
 }
 
@@ -120,8 +120,9 @@ class SupabaseProfileRepository internal constructor(
         }
     }
 
-    override suspend fun fetchProfile(): UserProfile? {
-        val userId = supabase.auth.currentUserOrNull()?.id ?: return null
+    override suspend fun fetchProfile(): Result<UserProfile> {
+        val userId = supabase.auth.currentUserOrNull()?.id
+            ?: return Result.failure(IllegalStateException("Non authentifié"))
         return runCatching {
             val dto = supabase.from("profiles").select(
                 columns = Columns.list(
@@ -130,7 +131,8 @@ class SupabaseProfileRepository internal constructor(
                 ),
             ) {
                 filter { eq("id", userId) }
-            }.decodeSingleOrNull<ProfileDto>() ?: return@runCatching null
+            }.decodeSingleOrNull<ProfileDto>()
+                ?: return@runCatching error("Profil introuvable pour $userId")
 
             val createdCount = supabase.from("events")
                 .select(columns = Columns.list("id")) { filter { eq("organizer_id", userId) } }
@@ -141,7 +143,7 @@ class SupabaseProfileRepository internal constructor(
                 .decodeList<ParticipantIdDto>().size
 
             dto.toUserProfile(userId, createdCount, joinedCount)
-        }.getOrNull()
+        }
     }
 
     override suspend fun updateProfile(profile: UserProfile): AuthActionResult {
@@ -185,7 +187,7 @@ object PreviewProfileRepository : ProfileRepository {
         return AuthActionResult(true, "Aperçu : profil terminé.")
     }
 
-    override suspend fun fetchProfile() = UserProfile(
+    override suspend fun fetchProfile() = Result.success(UserProfile(
         id = "preview",
         firstName = "Aperçu",
         lastName = "",
@@ -195,7 +197,7 @@ object PreviewProfileRepository : ProfileRepository {
         sports = emptyList(),
         activitiesCreated = 0,
         activitiesJoined = 0,
-    )
+    ))
 
     override suspend fun updateProfile(profile: UserProfile) =
         AuthActionResult(true, "Aperçu : profil mis à jour.")
@@ -206,7 +208,7 @@ object UnconfiguredProfileRepository : ProfileRepository {
     override suspend fun getOnboardingState() = OnboardingState()
     override suspend fun completeOnboarding(name: String, birthdate: String, selectedSports: Set<String>) =
         AuthActionResult(false, message)
-    override suspend fun fetchProfile() = null
+    override suspend fun fetchProfile() = Result.failure<UserProfile>(IllegalStateException(message))
     override suspend fun updateProfile(profile: UserProfile) = AuthActionResult(false, message)
 }
 

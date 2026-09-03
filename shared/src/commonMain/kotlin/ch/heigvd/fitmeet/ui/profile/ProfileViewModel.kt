@@ -20,12 +20,10 @@ class ProfileViewModel(
 
     init {
         viewModelScope.launch {
-            val profile = repository.fetchProfile()
-            _uiState.value = if (profile != null) {
-                ProfileUiState.Success(profile)
-            } else {
-                ProfileUiState.Error("Impossible de charger le profil.")
-            }
+            _uiState.value = repository.fetchProfile().fold(
+                onSuccess = { ProfileUiState.Success(it) },
+                onFailure = { ProfileUiState.Error(it.message ?: "Impossible de charger le profil.") },
+            )
         }
     }
 
