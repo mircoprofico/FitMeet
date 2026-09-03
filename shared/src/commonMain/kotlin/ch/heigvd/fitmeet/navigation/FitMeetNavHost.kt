@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -109,8 +108,11 @@ fun FitMeetNavHost(
                 // tab and coming back does not fire a new request
                 val viewModel = remember { ActivityListViewModel(activityRepository) }
                 val state by viewModel.uiState.collectAsState()
+                val joinedEventIds by viewModel.joinedEventIds.collectAsState()
                 ActivityListScreen(
                     state = state,
+                    joinedEventIds = joinedEventIds,
+                    onJoin = viewModel::joinEvent,
                     onRetry = viewModel::refresh,
                 )
             }
@@ -128,7 +130,7 @@ fun FitMeetNavHost(
             }
             composable<Profile> { entry ->
                 val parentEntry = remember(entry) { navController.getBackStackEntry<MainGraph>() }
-                val viewModel: ProfileViewModel = viewModel(parentEntry)
+                val viewModel: ProfileViewModel = viewModel(parentEntry) { ProfileViewModel(profileRepository) }
                 ProfileScreen(
                     viewModel = viewModel,
                     onEditProfile = { navController.navigate(EditProfile) },
@@ -144,7 +146,7 @@ fun FitMeetNavHost(
             }
             composable<EditProfile> { entry ->
                 val parentEntry = remember(entry) { navController.getBackStackEntry<MainGraph>() }
-                val viewModel: ProfileViewModel = viewModel(parentEntry)
+                val viewModel: ProfileViewModel = viewModel(parentEntry) { ProfileViewModel(profileRepository) }
                 EditProfileScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
             }
 

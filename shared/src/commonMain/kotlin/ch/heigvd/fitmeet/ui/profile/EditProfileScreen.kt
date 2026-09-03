@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -38,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,7 +62,6 @@ fun EditProfileScreen(
 
     var firstName by remember { mutableStateOf(profile.firstName) }
     var lastName by remember { mutableStateOf(profile.lastName) }
-    var age by remember { mutableStateOf(profile.age.toString()) }
     var city by remember { mutableStateOf(profile.city) }
     var bio by remember { mutableStateOf(profile.bio) }
     var sports by remember { mutableStateOf(profile.sports) }
@@ -82,7 +79,6 @@ fun EditProfileScreen(
                             profile.copy(
                                 firstName = firstName.trim(),
                                 lastName = lastName.trim(),
-                                age = age.toIntOrNull() ?: profile.age,
                                 city = city.trim(),
                                 bio = bio.trim(),
                                 sports = sports,
@@ -120,14 +116,6 @@ fun EditProfileScreen(
                 label = { Text("Nom") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-            )
-            OutlinedTextField(
-                value = age,
-                onValueChange = { age = it },
-                label = { Text("Âge") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
             OutlinedTextField(
                 value = city,

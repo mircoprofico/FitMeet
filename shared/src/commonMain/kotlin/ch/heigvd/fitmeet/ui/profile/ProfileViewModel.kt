@@ -1,34 +1,56 @@
 package ch.heigvd.fitmeet.ui.profile
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import ch.heigvd.fitmeet.data.profile.PreviewProfileRepository
+import ch.heigvd.fitmeet.data.profile.ProfileRepository
 import ch.heigvd.fitmeet.model.UserProfile
 import ch.heigvd.fitmeet.model.UserSport
 import ch.heigvd.fitmeet.ui.theme.Level
 import ch.heigvd.fitmeet.ui.theme.Sport
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
-class ProfileViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Success(mockProfile))
+class ProfileViewModel(
+    private val repository: ProfileRepository = PreviewProfileRepository,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
     val uiState: StateFlow<ProfileUiState> = _uiState
+
+    init {
+        viewModelScope.launch {
+            val profile = repository.fetchProfile()
+            _uiState.value = if (profile != null) {
+                ProfileUiState.Success(profile)
+            } else {
+                ProfileUiState.Error("Impossible de charger le profil.")
+            }
+        }
+    }
 
     fun updateProfile(updatedProfile: UserProfile) {
         _uiState.value = ProfileUiState.Success(updatedProfile)
+        viewModelScope.launch {
+            repository.updateProfile(updatedProfile)
+        }
     }
 }
 
 sealed class ProfileUiState {
     data object Loading : ProfileUiState()
     data class Success(val profile: UserProfile) : ProfileUiState()
+    data class Error(val message: String) : ProfileUiState()
 }
 
-internal val mockProfile = UserProfile(
-    id = "user-1",
+// Only used by PreviewProfileRepository and Compose previews — never shown in production.
+internal val previewProfile = UserProfile(
+    id = "preview",
     firstName = "Roger",
     lastName = "Federer",
     age = 45,
     city = "Lausanne",
-    bio = "Je débute en tennis. Mais je suis partant pour taper des balles avec n'importe qui. ",
+    bio = "Aperçu : profil simulé.",
     sports = listOf(
         UserSport(Sport.TENNIS, Level.BEGINNER),
         UserSport(Sport.RUNNING, Level.INTERMEDIATE),

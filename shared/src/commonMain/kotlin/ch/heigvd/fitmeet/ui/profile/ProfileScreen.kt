@@ -65,6 +65,10 @@ fun ProfileScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) { CircularProgressIndicator(color = ColorPrimary) }
+        is ProfileUiState.Error -> Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) { androidx.compose.material3.Text(state.message, color = ColorDanger) }
         is ProfileUiState.Success -> ProfileContent(
             profile = state.profile,
             onEditProfile = onEditProfile,
@@ -224,5 +228,5 @@ private fun SignOutButton(onClick: () -> Unit = {}) {
 @Preview
 @Composable
 private fun ProfileScreenPreview() {
-    ProfileContent(profile = mockProfile)
+    ProfileContent(profile = previewProfile)
 }
