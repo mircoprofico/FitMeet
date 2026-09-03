@@ -230,15 +230,15 @@ private fun ProfileDto.toUserProfile(id: String, createdCount: Int = 0, joinedCo
     )
 }
 
-private fun sportOf(slug: String) = when (slug) {
+private fun sportOf(slug: String) = when (slug.trim().lowercase()) {
     "football" -> Sport.FOOTBALL
-    "basketball" -> Sport.BASKETBALL
-    "volleyball" -> Sport.VOLLEYBALL
+    "basket", "basketball" -> Sport.BASKETBALL
+    "volley", "volleyball" -> Sport.VOLLEYBALL
     "tennis" -> Sport.TENNIS
     "badminton" -> Sport.BADMINTON
-    "running" -> Sport.RUNNING
-    "cycling" -> Sport.CYCLING
-    "hiking" -> Sport.HIKING
+    "course", "running" -> Sport.RUNNING
+    "vélo", "cycling" -> Sport.CYCLING
+    "randonnée", "hiking" -> Sport.HIKING
     else -> Sport.OTHER
 }
 
