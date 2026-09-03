@@ -30,8 +30,6 @@ fun LevelChip(level: Level, modifier: Modifier = Modifier) {
     )
 }
 
-
-
 @Preview
 @Composable
 private fun LevelChipPreview() {

@@ -59,8 +59,7 @@ class SupabaseActivityRepository(
         supabase.postgrest.rpc("join_event", buildJsonObject {
             put("p_event_id", activityId)
         })
-        Unit
-    }
+    }.map { }
 
     override suspend fun leave(activityId: String): Result<Unit> = runCatching {
         val userId = supabase.auth.currentUserOrNull()?.id
@@ -73,8 +72,7 @@ class SupabaseActivityRepository(
                 eq("user_id", userId)
             }
         }
-        Unit
-    }
+    }.map { }
 }
 
 private fun EventRow.toActivity() = Activity.fromEvent(
