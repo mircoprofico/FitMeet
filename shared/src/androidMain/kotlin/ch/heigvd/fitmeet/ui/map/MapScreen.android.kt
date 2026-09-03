@@ -100,7 +100,7 @@ actual fun PlatformMap(
                         currentOnMapClick?.invoke(latLng.latitude, latLng.longitude)
                         true
                     }
-                    map.addOnMarkerClickListener { marker ->
+                    map.setOnMarkerClickListener { marker: Marker ->
                         val activity = currentActivitiesById[marker.title]
                         if (activity != null) {
                             currentOnActivityClick?.invoke(activity)
