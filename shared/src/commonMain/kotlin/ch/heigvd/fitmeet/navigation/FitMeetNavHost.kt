@@ -26,6 +26,7 @@ import ch.heigvd.fitmeet.ui.activities.ActivityListViewModel
 import ch.heigvd.fitmeet.ui.activities.CreateActivityScreen
 import ch.heigvd.fitmeet.ui.auth.LoginScreen
 import ch.heigvd.fitmeet.ui.auth.OnboardingScreen
+import ch.heigvd.fitmeet.ui.auth.PasswordResetScreen
 import ch.heigvd.fitmeet.ui.auth.RegisterScreen
 import ch.heigvd.fitmeet.ui.map.MapScreen
 import ch.heigvd.fitmeet.ui.messages.ConversationListScreen
@@ -52,6 +53,11 @@ fun FitMeetNavHost(
     onOnboardingStateChanged: (OnboardingState) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    // Keep this shared profile state at the NavHost level.  Looking up a
+    // navigation-owned ViewModel works on Android but can crash on iOS when
+    // the MainGraph back-stack entry is restored.
+    val profileViewModel = remember { ProfileViewModel() }
+
     NavHost(
         navController = navController,
         startDestination = AuthGraph,
@@ -75,6 +81,16 @@ fun FitMeetNavHost(
             }
             composable<Register> {
                 RegisterScreen(onRegister = authRepository::signUp)
+            }
+            composable<PasswordReset> {
+                PasswordResetScreen(
+                    onPasswordReset = authRepository::updatePassword,
+                    onPasswordResetSuccess = {
+                        navController.navigate(Login) {
+                            popUpTo(PasswordReset) { inclusive = true }
+                        }
+                    },
+                )
             }
             composable<Onboarding> {
                 OnboardingScreen(
@@ -112,6 +128,7 @@ fun FitMeetNavHost(
                 ActivityListScreen(
                     state = state,
                     onRetry = viewModel::refresh,
+                    onJoin = viewModel::toggleJoin,
                 )
             }
             composable<MapTab> { MapScreen() }
@@ -126,11 +143,9 @@ fun FitMeetNavHost(
                     )
                 }
             }
-            composable<Profile> { entry ->
-                val parentEntry = remember(entry) { navController.getBackStackEntry<MainGraph>() }
-                val viewModel: ProfileViewModel = viewModel(parentEntry)
+            composable<Profile> {
                 ProfileScreen(
-                    viewModel = viewModel,
+                    viewModel = profileViewModel,
                     onEditProfile = { navController.navigate(EditProfile) },
                     onLogout = {
                         authRepository.signOut().also { result ->
@@ -142,10 +157,8 @@ fun FitMeetNavHost(
                     },
                 )
             }
-            composable<EditProfile> { entry ->
-                val parentEntry = remember(entry) { navController.getBackStackEntry<MainGraph>() }
-                val viewModel: ProfileViewModel = viewModel(parentEntry)
-                EditProfileScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+            composable<EditProfile> {
+                EditProfileScreen(viewModel = profileViewModel, onBack = { navController.popBackStack() })
             }
 
             composable<Conversation> { entry ->

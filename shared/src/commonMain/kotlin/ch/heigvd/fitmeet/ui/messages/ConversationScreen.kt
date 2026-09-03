@@ -22,6 +22,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -135,21 +137,27 @@ fun ConversationScreen(
 
                     Button(
                         onClick = { navController.popBackStack() },
+                        modifier = Modifier.size(48.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFF0000),
+                            containerColor = Color.Transparent,
+                            contentColor = Navy,
                         ),
-                        shape = RoundedCornerShape(6.dp),
-                        modifier = Modifier.padding(16.dp).size(40.dp),
-                        contentPadding = PaddingValues(0.dp)
+                        contentPadding = PaddingValues(0.dp),
                     ) {
-                        Text(
-                            "X",
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.W900,
-                            color = Color(0xFFFFFFFF),
-                            fontSize = 18.sp
-                        )
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = "←",
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Navy,
+                            )
+                        }
                     }
+
+
 
 
                     Text(
