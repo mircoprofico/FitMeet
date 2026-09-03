@@ -62,6 +62,10 @@ private fun ConversationRow.toSummary() = ConversationSummary(
         levelSlug = level,
         participants = participantCount,
         capacity = capacity,
+        // This RPC only returns conversations accessible to the current user:
+        // they either organize the event or already participate in it.
+        isJoined = true,
+        isOrganizer = isOrganizer,
     ),
     isOrganizer = isOrganizer,
     lastMessageAt = lastMessageAt,

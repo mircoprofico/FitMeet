@@ -339,7 +339,9 @@ fun ConversationScreen(
                     ActivityDetailScreen(
                         activity = it,
                         showJoinButton = false,
-                        showLeaveButton = conversationSummary?.isOrganizer == false,
+                        // An accessible conversation means the user already
+                        // attends. Only a non-organizer may leave it.
+                        showLeaveButton = it.canLeave,
                         isLeaving = isLeaving,
                         onLeave = {
                             scope.launch {
