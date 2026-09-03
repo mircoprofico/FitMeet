@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import ch.heigvd.fitmeet.data.messages.ConversationMessage
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
+import ch.heigvd.fitmeet.data.messages.ConversationSummary
 import ch.heigvd.fitmeet.model.Activity
 import ch.heigvd.fitmeet.ui.activities.ActivityDetailScreen
 import kotlinx.coroutines.launch
@@ -68,6 +69,8 @@ fun ConversationScreen(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var activity by remember { mutableStateOf<Activity?>(null) }
+    var conversationSummary by remember { mutableStateOf<ConversationSummary?>(null) }
+    var isLeaving by remember { mutableStateOf(false) }
     val currentUserId = conversationRepository.currentUserId()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -77,7 +80,10 @@ fun ConversationScreen(
 
     LaunchedEffect(conversationRepository, conversationId) {
         conversationRepository.getConversationSummary(conversationId)
-            .onSuccess { activity = it.activity }
+            .onSuccess { summary ->
+                conversationSummary = summary
+                activity = summary.activity
+            }
 
         conversationRepository.getMessages(conversationId)
             .onSuccess {
@@ -333,6 +339,21 @@ fun ConversationScreen(
                     ActivityDetailScreen(
                         activity = it,
                         showJoinButton = false,
+                        showLeaveButton = conversationSummary?.isOrganizer == false,
+                        isLeaving = isLeaving,
+                        onLeave = {
+                            scope.launch {
+                                isLeaving = true
+                                val result = conversationRepository.leaveActivity(it.id)
+                                isLeaving = false
+                                if (result.isSuccess) {
+                                    showDetails = false
+                                    navController.popBackStack()
+                                } else {
+                                    errorMessage = result.message
+                                }
+                            }
+                        },
                     )
                 }
 

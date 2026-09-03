@@ -47,7 +47,10 @@ fun ActivityDetailScreen(
     description: String = activity.description,
     isJoined: Boolean = false,
     showJoinButton: Boolean = true,
+    showLeaveButton: Boolean = false,
+    isLeaving: Boolean = false,
     onJoin: () -> Unit = {},
+    onLeave: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val uriHandler = LocalUriHandler.current
@@ -147,6 +150,18 @@ fun ActivityDetailScreen(
                         },
                         fontSize = 15.sp,
                     )
+                }
+            }
+
+            if (showLeaveButton) {
+                Button(
+                    onClick = onLeave,
+                    enabled = !isLeaving,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC62828)),
+                    shape = RoundedCornerShape(10.dp),
+                ) {
+                    Text(if (isLeaving) "Sortie..." else "Quitter l'activité", fontSize = 15.sp)
                 }
             }
         }

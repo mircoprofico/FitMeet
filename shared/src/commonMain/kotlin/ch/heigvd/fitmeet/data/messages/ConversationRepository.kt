@@ -100,6 +100,7 @@ interface ConversationRepository {
         conversationId: String,
         content: String,
     ): AuthActionResult
+    suspend fun leaveActivity(eventId: String): AuthActionResult
 
     fun currentUserId(): String?
 }
@@ -183,6 +184,20 @@ class SupabaseConversationRepository internal constructor(
         }
     }
 
+    override suspend fun leaveActivity(eventId: String): AuthActionResult {
+        val userId = currentUserId()
+            ?: return AuthActionResult(false, "Votre session a expiré. Reconnectez-vous.")
+        return runCatching {
+            supabase.from("event_participants").delete {
+                filter {
+                    eq("event_id", eventId)
+                    eq("user_id", userId)
+                }
+            }
+            AuthActionResult(true, "Vous avez quitté l'activité.")
+        }.getOrElse { AuthActionResult(false, it.message ?: "Impossible de quitter l'activité.") }
+    }
+
     override fun currentUserId(): String? = supabase.auth.currentUserOrNull()?.id
 
     private suspend fun loadMissingProfileNames(senderIds: List<String>) {
@@ -254,6 +269,8 @@ object PreviewConversationRepository : ConversationRepository {
     override suspend fun sendMessage(senderUserId: String, conversationId: String, content: String) =
         AuthActionResult(true, "Aperçu : message envoyé.")
 
+    override suspend fun leaveActivity(eventId: String) = AuthActionResult(true, "Aperçu : activité quittée.")
+
     override fun currentUserId() = "preview-user"
 }
 
@@ -275,6 +292,8 @@ object UnconfiguredConversationRepository : ConversationRepository {
 
     override suspend fun sendMessage(senderUserId: String, conversationId: String, content: String) =
         AuthActionResult(false, message)
+
+    override suspend fun leaveActivity(eventId: String) = AuthActionResult(false, message)
 
     override fun currentUserId() = null
 }
