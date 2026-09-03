@@ -88,6 +88,7 @@ fun App(
 
       Scaffold(
           bottomBar = {
+
               if (currentDestination?.hierarchy?.any {
                   it.hasRoute(MainGraph::class)
               } == true) {
