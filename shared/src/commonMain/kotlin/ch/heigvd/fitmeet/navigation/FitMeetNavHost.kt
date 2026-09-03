@@ -25,6 +25,7 @@ import ch.heigvd.fitmeet.ui.activities.ActivityListViewModel
 import ch.heigvd.fitmeet.ui.activities.CreateActivityScreen
 import ch.heigvd.fitmeet.ui.auth.LoginScreen
 import ch.heigvd.fitmeet.ui.auth.OnboardingScreen
+import ch.heigvd.fitmeet.ui.auth.PasswordResetScreen
 import ch.heigvd.fitmeet.ui.auth.RegisterScreen
 import ch.heigvd.fitmeet.ui.map.MapScreen
 import ch.heigvd.fitmeet.ui.messages.ConversationListScreen
@@ -74,6 +75,16 @@ fun FitMeetNavHost(
             }
             composable<Register> {
                 RegisterScreen(onRegister = authRepository::signUp)
+            }
+            composable<PasswordReset> {
+                PasswordResetScreen(
+                    onPasswordReset = authRepository::updatePassword,
+                    onPasswordResetSuccess = {
+                        navController.navigate(Login) {
+                            popUpTo(PasswordReset) { inclusive = true }
+                        }
+                    },
+                )
             }
             composable<Onboarding> {
                 OnboardingScreen(

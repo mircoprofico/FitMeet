@@ -1,12 +1,11 @@
 package ch.heigvd.fitmeet.data.activities
 
 import ch.heigvd.fitmeet.model.Activity
-import ch.heigvd.fitmeet.ui.theme.Level
-import ch.heigvd.fitmeet.ui.theme.Sport
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -17,8 +16,10 @@ private data class EventRow(
     @SerialName("sport_slug") val sportSlug: String,
     @SerialName("starts_at") val startsAt: String,
     @SerialName("location_name") val locationName: String,
+    val location: String? = null,
     val level: String,
     val capacity: Int,
+    @SerialName("participant_count") val participantCount: Int,
 )
 
 @Serializable
@@ -41,8 +42,8 @@ class SupabaseActivityRepository(
 ) : ActivityRepository {
 
     override suspend fun nearbyActivities(): Result<List<Activity>> = runCatching {
-        supabase.from("events")
-            .select()
+        supabase.postgrest
+            .rpc("my_activities")
             .decodeList<EventRow>()
             .map { it.toActivity() }
     }
@@ -96,10 +97,15 @@ private fun displayDate(startsAt: String): String {
 }
 
 private fun EventRow.toActivity() = Activity(
+private fun EventRow.toActivity() = Activity.fromEvent(
     id = id,
     title = title,
-    sport = sportOf(sportSlug),
+    sportSlug = sportSlug,
     startsAt = startsAt,
+    locationName = locationName,
+    location = location,
+    levelSlug = level,
+    participants = participantCount,
     dateTime = displayDate(startsAt),
     place = locationName,
     level = levelOf(level),

@@ -1,6 +1,7 @@
 package ch.heigvd.fitmeet.data.messages
 
 import ch.heigvd.fitmeet.data.auth.AuthActionResult
+import ch.heigvd.fitmeet.model.Activity
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
@@ -21,16 +22,47 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 
-@Serializable
 data class ConversationSummary(
+    val conversationId: String,
+    val eventId: String,
+    val activity: Activity,
+    val isOrganizer: Boolean,
+    val lastMessageAt: String? = null,
+)
+
+@Serializable
+private data class ConversationRow(
     @SerialName("conversation_id") val conversationId: String,
     @SerialName("event_id") val eventId: String,
     val title: String,
+    @SerialName("sport_slug") val sportSlug: String,
     @SerialName("starts_at") val startsAt: String,
     @SerialName("ends_at") val endsAt: String? = null,
     @SerialName("location_name") val locationName: String,
+    val location: String? = null,
+    val level: String,
+    val capacity: Int,
+    @SerialName("participant_count") val participantCount: Int,
     @SerialName("is_organizer") val isOrganizer: Boolean,
     @SerialName("last_message_at") val lastMessageAt: String? = null,
+)
+
+private fun ConversationRow.toSummary() = ConversationSummary(
+    conversationId = conversationId,
+    eventId = eventId,
+    activity = Activity.fromEvent(
+        id = eventId,
+        title = title,
+        sportSlug = sportSlug,
+        startsAt = startsAt,
+        locationName = locationName,
+        location = location,
+        levelSlug = level,
+        participants = participantCount,
+        capacity = capacity,
+    ),
+    isOrganizer = isOrganizer,
+    lastMessageAt = lastMessageAt,
 )
 
 @Serializable
@@ -58,6 +90,7 @@ private data class NewConversationMessage(
 
 interface ConversationRepository {
     suspend fun getAccessibleConversations(): Result<List<ConversationSummary>>
+    suspend fun getConversationSummary(conversationId: String): Result<ConversationSummary>
     suspend fun getMessages(conversationId: String): Result<List<ConversationMessage>>
     fun observeMessages(conversationId: String): Flow<ConversationMessage>
     suspend fun sendMessage(
@@ -77,8 +110,15 @@ class SupabaseConversationRepository internal constructor(
     override suspend fun getAccessibleConversations(): Result<List<ConversationSummary>> = runCatching {
         supabase.postgrest
             .rpc("my_event_conversations")
-            .decodeList<ConversationSummary>()
+            .decodeList<ConversationRow>()
+            .map(ConversationRow::toSummary)
     }
+
+    override suspend fun getConversationSummary(conversationId: String): Result<ConversationSummary> =
+        getAccessibleConversations().mapCatching { conversations ->
+            conversations.firstOrNull { it.conversationId == conversationId }
+                ?: error("Conversation introuvable.")
+        }
 
     override suspend fun getMessages(conversationId: String): Result<List<ConversationMessage>> = runCatching {
         val messages = supabase.from("conversation_messages").select(
@@ -164,10 +204,16 @@ object PreviewConversationRepository : ConversationRepository {
         ConversationSummary(
             conversationId = "preview-conversation",
             eventId = "preview-event",
-            title = "Course au bord du lac",
-            startsAt = "2026-09-15T18:30:00Z",
-            endsAt = "2026-09-15T19:30:00Z",
-            locationName = "Lausanne",
+            activity = Activity.fromEvent(
+                id = "preview-event",
+                title = "Course au bord du lac",
+                sportSlug = "running",
+                startsAt = "2026-09-15T18:30:00Z",
+                locationName = "Lausanne",
+                levelSlug = "all",
+                participants = 3,
+                capacity = 10,
+            ),
             isOrganizer = false,
             lastMessageAt = null,
         ),
@@ -193,6 +239,10 @@ object PreviewConversationRepository : ConversationRepository {
 
     override suspend fun getAccessibleConversations() = Result.success(conversations)
 
+    override suspend fun getConversationSummary(conversationId: String) = Result.success(
+        conversations.first { it.conversationId == conversationId },
+    )
+
     override suspend fun getMessages(conversationId: String) = Result.success(
         messages.filter { it.conversationId == conversationId },
     )
@@ -211,6 +261,9 @@ object UnconfiguredConversationRepository : ConversationRepository {
     override suspend fun getAccessibleConversations() = Result.failure<List<ConversationSummary>>(
         IllegalStateException(message),
     )
+
+    override suspend fun getConversationSummary(conversationId: String) =
+        Result.failure<ConversationSummary>(IllegalStateException(message))
 
     override suspend fun getMessages(conversationId: String) = Result.failure<List<ConversationMessage>>(
         IllegalStateException(message),
