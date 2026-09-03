@@ -22,6 +22,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +60,8 @@ fun ProfileScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var logoutMessage by remember { mutableStateOf<AuthActionResult?>(null) }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) { viewModel.refresh() }
 
     when (val state = uiState) {
         is ProfileUiState.Loading -> Box(

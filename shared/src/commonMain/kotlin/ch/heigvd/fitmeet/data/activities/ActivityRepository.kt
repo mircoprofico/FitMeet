@@ -69,34 +69,6 @@ class SupabaseActivityRepository(
     }
 }
 
-private fun sportOf(slug: String) = when (slug) {
-    "football" -> Sport.FOOTBALL
-    "basketball" -> Sport.BASKETBALL
-    "volleyball" -> Sport.VOLLEYBALL
-    "tennis" -> Sport.TENNIS
-    "badminton" -> Sport.BADMINTON
-    "running" -> Sport.RUNNING
-    "cycling" -> Sport.CYCLING
-    "hiking" -> Sport.HIKING
-    else -> Sport.OTHER
-}
-
-private fun levelOf(slug: String) = when (slug) {
-    "intermediate" -> Level.INTERMEDIATE
-    "advanced" -> Level.ADVANCED
-    else -> Level.ALL
-}
-
-private fun displayDate(startsAt: String): String {
-    val date = startsAt.substringBefore('T')
-    val time = startsAt.substringAfter('T').take(5)
-    val parts = date.split('-')
-    val day = parts.getOrNull(2) ?: return startsAt
-    val month = parts.getOrNull(1) ?: return startsAt
-    return "$day.$month - ${time.replace(':', 'h')}"
-}
-
-private fun EventRow.toActivity() = Activity(
 private fun EventRow.toActivity() = Activity.fromEvent(
     id = id,
     title = title,
@@ -106,10 +78,6 @@ private fun EventRow.toActivity() = Activity.fromEvent(
     location = location,
     levelSlug = level,
     participants = participantCount,
-    dateTime = displayDate(startsAt),
-    place = locationName,
-    level = levelOf(level),
-    participants = 0,
     capacity = capacity,
 )
 

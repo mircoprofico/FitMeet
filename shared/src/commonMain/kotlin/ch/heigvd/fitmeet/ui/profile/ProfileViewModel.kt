@@ -19,6 +19,10 @@ class ProfileViewModel(
     val uiState: StateFlow<ProfileUiState> = _uiState
 
     init {
+        refresh()
+    }
+
+    fun refresh() {
         viewModelScope.launch {
             _uiState.value = repository.fetchProfile().fold(
                 onSuccess = { ProfileUiState.Success(it) },
