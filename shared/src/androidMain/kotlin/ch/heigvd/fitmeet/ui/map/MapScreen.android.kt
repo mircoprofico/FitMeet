@@ -147,13 +147,19 @@ actual fun LocationEffect(onLocation: (Double, Double) -> Unit) {
         val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val listener = LocationListener { loc -> callback(loc.latitude, loc.longitude) }
         try {
-            // emit last known location immediately so the camera does not wait
-            val last = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-                ?: lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            // GPS first: more reliable on emulator and physical devices
+            val last = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+                ?: lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
             last?.let { callback(it.latitude, it.longitude) }
-            // then keep updating so every visit to the map tab centres on the
-            // current position, not a stale one
-            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5_000L, 10f, listener)
+            // 0f minimum distance: fire on every update regardless of movement,
+            // so coming back to the map tab re-centres immediately
+            if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2_000L, 0f, listener)
+            }
+            if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2_000L, 0f, listener)
+            }
         } catch (_: SecurityException) {}
         onDispose { lm.removeUpdates(listener) }
     }
