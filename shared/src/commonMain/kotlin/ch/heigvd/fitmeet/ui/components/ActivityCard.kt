@@ -148,7 +148,7 @@ fun ActivityCard(
                         Text(
                             text = when {
                                 isJoined && canLeave -> "Quitter"
-                                isJoined -> "Inscrit"
+                                isJoined -> "Organisateur"
                                 full -> "Complet"
                                 else -> "Rejoindre"
                             },

@@ -144,7 +144,7 @@ fun ActivityDetailScreen(
                     Text(
                         text = when {
                             joined && activity.canLeave -> "Quitter l'activité"
-                            joined -> "Vous participez"
+                            joined -> "Organisateur"
                             activity.isFull -> "Complet"
                             else -> "Rejoindre"
                         },
