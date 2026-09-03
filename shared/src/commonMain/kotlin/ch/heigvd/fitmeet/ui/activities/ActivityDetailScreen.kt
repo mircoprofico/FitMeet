@@ -136,7 +136,11 @@ fun ActivityDetailScreen(
                     enabled = joined || !activity.isFull,
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (joined) Color(0xFFCF3838) else Color(0xFF3E8E68),
+                        containerColor = when {
+                            joined && activity.canLeave -> Color(0xFFCF3838)
+                            joined -> Color(0xFF2F6EA5)
+                            else -> Color(0xFF3E8E68)
+                        },
                         disabledContainerColor = Color(0xFFB9C2BC),
                     ),
                     shape = RoundedCornerShape(10.dp),
@@ -144,7 +148,7 @@ fun ActivityDetailScreen(
                     Text(
                         text = when {
                             joined && activity.canLeave -> "Quitter l'activité"
-                            joined -> "Vous participez"
+                            joined -> "Organisateur"
                             activity.isFull -> "Complet"
                             else -> "Rejoindre"
                         },
