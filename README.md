@@ -2,7 +2,7 @@
 
 <img src="docs/logo.png" alt="FitMeet" width="190">
 
-### Find people to play with, not people to match with
+### Meet people, Fit together
 
 FitMeet matches sport sessions, not profiles. A sport, a place, a time, a
 level — you create one, or you join one.
