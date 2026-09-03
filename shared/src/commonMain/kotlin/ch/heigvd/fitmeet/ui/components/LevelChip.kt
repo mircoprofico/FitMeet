@@ -24,7 +24,7 @@ fun LevelChip(level: Level, modifier: Modifier = Modifier) {
         color = Color.White,
         fontSize = 11.sp,
         modifier = modifier
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(8.dp)) // same radius as the buttons
             .background(level.color)
             .padding(horizontal = 8.dp, vertical = 2.dp),
     )
