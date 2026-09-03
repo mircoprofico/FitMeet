@@ -209,6 +209,7 @@ fun ActivityListScreen(
         }
     }
 }
+}
 
 @Preview
 @Composable
