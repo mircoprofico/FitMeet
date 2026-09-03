@@ -14,15 +14,34 @@ class ActivityListViewModel(
     private val _uiState = MutableStateFlow<ActivityListUiState>(ActivityListUiState.Loading)
     val uiState: StateFlow<ActivityListUiState> = _uiState
 
-    private val _joinedEventIds = MutableStateFlow<Set<String>>(emptySet())
-    val joinedEventIds: StateFlow<Set<String>> = _joinedEventIds
-
     init {
         refresh()
+    }
+
+    // optimistic: the button flips straight away, then we call supabase.
+    // if it refuses, the previous state comes back and a refresh resyncs.
+    fun toggleJoin(activityId: String) {
+        val current = _uiState.value as? ActivityListUiState.Success ?: return
+        val target = current.activities.firstOrNull { it.id == activityId } ?: return
+        if (target.isOrganizer) return
+        if (!target.isJoined && target.isFull) return
+
+        val joining = !target.isJoined
+        _uiState.value = current.copy(
+            activities = current.activities.map {
+                if (it.id != activityId) it
+                else it.copy(
+                    isJoined = joining,
+                    participants = it.participants + if (joining) 1 else -1,
+                )
+            },
+        )
+
         viewModelScope.launch {
-            repository.participatingEventIds().onSuccess { ids ->
-                _joinedEventIds.value = ids
-            }
+            val result = if (joining) repository.join(activityId)
+                         else repository.leave(activityId)
+            if (result.isFailure) _uiState.value = current
+            refresh()
         }
     }
 
@@ -33,14 +52,6 @@ class ActivityListViewModel(
                 onSuccess = { ActivityListUiState.Success(it) },
                 onFailure = { ActivityListUiState.Error("Impossible de charger les activités") },
             )
-        }
-    }
-
-    fun joinEvent(eventId: String) {
-        viewModelScope.launch {
-            repository.joinEvent(eventId).onSuccess {
-                _joinedEventIds.value = _joinedEventIds.value + eventId
-            }
         }
     }
 }

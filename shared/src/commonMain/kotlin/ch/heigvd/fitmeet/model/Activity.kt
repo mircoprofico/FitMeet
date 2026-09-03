@@ -9,6 +9,7 @@ import ch.heigvd.fitmeet.ui.theme.Sport
 data class Activity(
     val id: String,
     val title: String,
+    val description: String = "",
     val sport: Sport,
     // iso 8601, sortable as plain text: year then month then day.
     // this is what starts_at holds in the events table.
@@ -18,13 +19,23 @@ data class Activity(
     val place: String,
     /** A Google Maps search URL derived from the event's geographic point. */
     val mapUrl: String? = null,
+    // same point, kept as numbers so the list can sort by distance
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val level: Level,
     val participants: Int,
     val capacity: Int,
+    // whether the signed in user attends, and whether they organise it.
+    // an organizer attends by definition and cannot leave.
+    val isJoined: Boolean = false,
+    val isOrganizer: Boolean = false,
 ) {
     // handy for the card: hides the "3/10" formatting and the full check
     val attendance: String get() = "$participants/$capacity"
     val isFull: Boolean get() = participants >= capacity
+
+    // an organizer is stuck with their own event, everyone else can leave
+    val canLeave: Boolean get() = isJoined && !isOrganizer
 
     companion object {
         fun fromEvent(
@@ -34,12 +45,16 @@ data class Activity(
             startsAt: String,
             locationName: String,
             location: String? = null,
+            description: String? = null,
             levelSlug: String,
             participants: Int,
             capacity: Int,
+            isJoined: Boolean = false,
+            isOrganizer: Boolean = false,
         ) = Activity(
             id = id,
             title = title,
+            description = description.orEmpty(),
             sport = when (sportSlug) {
                 "football" -> Sport.FOOTBALL
                 "basketball" -> Sport.BASKETBALL
@@ -55,6 +70,8 @@ data class Activity(
             dateTime = displayDate(startsAt),
             place = locationName,
             mapUrl = googleMapsUrl(location),
+            latitude = pointOf(location)?.first,
+            longitude = pointOf(location)?.second,
             level = when (levelSlug) {
                 "beginner" -> Level.BEGINNER
                 "intermediate" -> Level.INTERMEDIATE
@@ -63,6 +80,8 @@ data class Activity(
             },
             participants = participants,
             capacity = capacity,
+            isJoined = isJoined || isOrganizer,
+            isOrganizer = isOrganizer,
         )
 
         private fun displayDate(startsAt: String): String {
@@ -75,6 +94,14 @@ data class Activity(
         }
 
         // PostGIS points use longitude first: POINT(longitude latitude).
+        private fun pointOf(location: String?): Pair<Double, Double>? {
+            val g = location?.trim()?.let { POINT_PATTERN.matchEntire(it) }?.groupValues
+                ?: return null
+            val lat = g[2].toDoubleOrNull() ?: return null
+            val lng = g[1].toDoubleOrNull() ?: return null
+            return lat to lng
+        }
+
         private fun googleMapsUrl(location: String?): String? {
             val coordinates = location
                 ?.trim()

@@ -1,12 +1,12 @@
 package ch.heigvd.fitmeet.ui.activities
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,6 +47,8 @@ fun CreateActivityScreen(
     eventRepository: EventRepository,
     navController: NavController
 ) {
+    val focusManager = LocalFocusManager.current
+
     if (currentScreen.value >= activities.size) {
         ActivityConfirmation(
             eventRepository = eventRepository,
@@ -78,7 +81,9 @@ fun CreateActivityScreen(
                         false
                 ,
                 shape = RoundedCornerShape(6.dp),
-                modifier = Modifier.padding(16.dp).fillMaxWidth()
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
             ) {
 
                 Text(
@@ -119,7 +124,8 @@ fun CreateActivityScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 28.dp),
+                .padding(horizontal = 28.dp)
+                .clickable { focusManager.clearFocus() },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(10.dp))
@@ -137,5 +143,3 @@ fun CreateActivityScreen(
         }
     }
 }
-
-

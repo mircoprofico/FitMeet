@@ -52,6 +52,11 @@ fun FitMeetNavHost(
     onOnboardingStateChanged: (OnboardingState) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    // Keep this shared profile state at the NavHost level.  Looking up a
+    // navigation-owned ViewModel works on Android but can crash on iOS when
+    // the MainGraph back-stack entry is restored.
+    val profileViewModel = remember { ProfileViewModel(profileRepository) }
+
     NavHost(
         navController = navController,
         startDestination = AuthGraph,
@@ -119,11 +124,9 @@ fun FitMeetNavHost(
                 // tab and coming back does not fire a new request
                 val viewModel = remember { ActivityListViewModel(activityRepository) }
                 val state by viewModel.uiState.collectAsState()
-                val joinedEventIds by viewModel.joinedEventIds.collectAsState()
                 ActivityListScreen(
                     state = state,
-                    joinedEventIds = joinedEventIds,
-                    onJoin = viewModel::joinEvent,
+                    onToggleJoin = viewModel::toggleJoin,
                     onRetry = viewModel::refresh,
                 )
             }
@@ -139,11 +142,9 @@ fun FitMeetNavHost(
                     )
                 }
             }
-            composable<Profile> { entry ->
-                val parentEntry = remember(entry) { navController.getBackStackEntry<MainGraph>() }
-                val viewModel: ProfileViewModel = viewModel(parentEntry) { ProfileViewModel(profileRepository) }
+            composable<Profile> {
                 ProfileScreen(
-                    viewModel = viewModel,
+                    viewModel = profileViewModel,
                     onEditProfile = { navController.navigate(EditProfile) },
                     onLogout = {
                         authRepository.signOut().also { result ->
@@ -155,10 +156,8 @@ fun FitMeetNavHost(
                     },
                 )
             }
-            composable<EditProfile> { entry ->
-                val parentEntry = remember(entry) { navController.getBackStackEntry<MainGraph>() }
-                val viewModel: ProfileViewModel = viewModel(parentEntry) { ProfileViewModel(profileRepository) }
-                EditProfileScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+            composable<EditProfile> {
+                EditProfileScreen(viewModel = profileViewModel, onBack = { navController.popBackStack() })
             }
 
             composable<Conversation> { entry ->

@@ -84,12 +84,6 @@ fun LoginScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Green, contentColor = Color.White),
                 ) { Text("Se connecter", fontWeight = FontWeight.Bold) }
 
-                Button(
-                    onClick = {},
-                    shape = RoundedCornerShape(6.dp),
-                    modifier = Modifier.fillMaxWidth(0.5f).align(Alignment.CenterHorizontally),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red, contentColor = Color.White),
-                ) { Text("Google", fontWeight = FontWeight.Bold) }
             }
 
             message?.let {

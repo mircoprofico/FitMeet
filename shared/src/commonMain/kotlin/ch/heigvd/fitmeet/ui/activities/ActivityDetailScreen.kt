@@ -44,7 +44,7 @@ import org.jetbrains.compose.resources.painterResource
 fun ActivityDetailScreen(
     activity: Activity,
     organizer: String = "",
-    description: String = "",
+    description: String = activity.description,
     isJoined: Boolean = false,
     showJoinButton: Boolean = true,
     onJoin: () -> Unit = {},
@@ -125,16 +125,23 @@ fun ActivityDetailScreen(
             AvatarStack(count = activity.participants, maxVisible = 5)
 
             if (showJoinButton) {
+                // same three states as the card. the state comes from the
+                // activity itself, so the sheet and the list never disagree.
+                val joined = isJoined || activity.isJoined
                 Button(
                     onClick = onJoin,
-                    enabled = !activity.isFull && !isJoined,
+                    enabled = joined || !activity.isFull,
                     modifier = Modifier.fillMaxWidth().height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3E8E68)),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (joined) Color(0xFFCF3838) else Color(0xFF3E8E68),
+                        disabledContainerColor = Color(0xFFB9C2BC),
+                    ),
                     shape = RoundedCornerShape(10.dp),
                 ) {
                     Text(
                         text = when {
-                            isJoined -> "Vous participez"
+                            joined && activity.canLeave -> "Quitter l'activité"
+                            joined -> "Vous participez"
                             activity.isFull -> "Complet"
                             else -> "Rejoindre"
                         },
