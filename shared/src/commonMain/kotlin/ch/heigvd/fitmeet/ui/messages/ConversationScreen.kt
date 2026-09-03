@@ -108,7 +108,6 @@ fun ConversationScreen(
 
         }
     }
-    val backgroundColor = Color(0xFFDDDDDD)
     val separationColor = Color(0xFFBBBBBB)
     val textColor = Color(0xFF0B2545)
     var currentMessage by remember { mutableStateOf("") }
@@ -118,7 +117,6 @@ fun ConversationScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(backgroundColor)
                 .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
