@@ -221,10 +221,10 @@
                         color = Color.White,
                         fontWeight = FontWeight.Black
                         )
-                    Spacer(
-                        modifier = Modifier.height(20.dp)
-                    )
                 }
+                Spacer(
+                    modifier = Modifier.height(30.dp)
+                )
             }
         }
     }

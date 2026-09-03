@@ -3,6 +3,7 @@ package ch.heigvd.fitmeet.ui.activities
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,12 +23,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,11 +44,16 @@ import org.jetbrains.compose.resources.painterResource
 fun ActivityDetailScreen(
     activity: Activity,
     organizer: String = "",
-    description: String = "",
+    description: String = activity.description,
     isJoined: Boolean = false,
+    showJoinButton: Boolean = true,
+    showLeaveButton: Boolean = false,
+    isLeaving: Boolean = false,
     onJoin: () -> Unit = {},
+    onLeave: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    val uriHandler = LocalUriHandler.current
     Column(
         modifier = modifier
             // fillMaxWidth and not fillMaxSize: inside a bottom sheet the
@@ -101,7 +109,11 @@ fun ActivityDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 InfoLine("Quand", activity.dateTime)
-                InfoLine("Où", activity.place)
+                InfoLine(
+                    label = "Où",
+                    value = activity.place,
+                    onClick = activity.mapUrl?.let { mapUrl -> { uriHandler.openUri(mapUrl) } },
+                )
                 if (organizer.isNotBlank()) InfoLine("Organisé par", organizer)
             }
 
@@ -115,23 +127,42 @@ fun ActivityDetailScreen(
             }
             AvatarStack(count = activity.participants, maxVisible = 5)
 
-            // when without a subject: the first true branch wins.
-            // enabled greys the button out on its own, no need to hide it.
-            Button(
-                onClick = onJoin,
-                enabled = !activity.isFull && !isJoined,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3E8E68)),
-                shape = RoundedCornerShape(10.dp),
-            ) {
-                Text(
-                    text = when {
-                        isJoined -> "Vous participez"
-                        activity.isFull -> "Complet"
-                        else -> "Rejoindre"
-                    },
-                    fontSize = 15.sp,
-                )
+            if (showJoinButton) {
+                // same three states as the card. the state comes from the
+                // activity itself, so the sheet and the list never disagree.
+                val joined = isJoined || activity.isJoined
+                Button(
+                    onClick = onJoin,
+                    enabled = joined || !activity.isFull,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (joined) Color(0xFFCF3838) else Color(0xFF3E8E68),
+                        disabledContainerColor = Color(0xFFB9C2BC),
+                    ),
+                    shape = RoundedCornerShape(10.dp),
+                ) {
+                    Text(
+                        text = when {
+                            joined && activity.canLeave -> "Quitter l'activité"
+                            joined -> "Vous participez"
+                            activity.isFull -> "Complet"
+                            else -> "Rejoindre"
+                        },
+                        fontSize = 15.sp,
+                    )
+                }
+            }
+
+            if (showLeaveButton) {
+                Button(
+                    onClick = onLeave,
+                    enabled = !isLeaving,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC62828)),
+                    shape = RoundedCornerShape(10.dp),
+                ) {
+                    Text(if (isLeaving) "Sortie..." else "Quitter l'activité", fontSize = 15.sp)
+                }
             }
         }
     }
@@ -139,7 +170,7 @@ fun ActivityDetailScreen(
 
 // label on the left, value on the right, so the three lines line up
 @Composable
-private fun InfoLine(label: String, value: String) {
+private fun InfoLine(label: String, value: String, onClick: (() -> Unit)? = null) {
     Row {
         Text(
             text = label,
@@ -147,7 +178,13 @@ private fun InfoLine(label: String, value: String) {
             color = Color(0xFF6B7C74),
             modifier = Modifier.width(96.dp),
         )
-        Text(value, fontSize = 13.sp)
+        Text(
+            text = value,
+            fontSize = 13.sp,
+            color = if (onClick == null) Color.Unspecified else Color(0xFF1565C0),
+            textDecoration = if (onClick == null) null else TextDecoration.Underline,
+            modifier = if (onClick == null) Modifier else Modifier.clickable(onClick = onClick),
+        )
     }
 }
 

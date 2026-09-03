@@ -36,6 +36,7 @@ private data class NewEvent(
     val description: String? = null,
     @SerialName("starts_at") val startsAt: String,
     @SerialName("ends_at") val endsAt: String,
+    val duration: Double,
     @SerialName("location_name") val locationName: String,
     val location: String,
     val level: String,
@@ -64,9 +65,11 @@ class SupabaseEventRepository(
             "Le type de l'activité est obligatoire."
         }
         require(position.startsWith("POINT(")) { "La position de l'activité est invalide." }
+        require(capacity in 1..10_000) { "La capacité de l'activité est invalide." }
+        require(duration >= 0) { "La durée de l'activité est invalide." }
 
         val startsAt = parseDateTime(date, time)
-        val endsAt = startsAt.plus(duration.coerceAtLeast(0).toLong(), DateTimeUnit.MINUTE)
+        val endsAt = startsAt.plus(duration.toLong(), DateTimeUnit.MINUTE)
 
         supabase.from("events").insert(
             NewEvent(
@@ -76,10 +79,11 @@ class SupabaseEventRepository(
                 description = description.trim().ifEmpty { null },
                 startsAt = startsAt.toString(),
                 endsAt = endsAt.toString(),
+                duration = duration.toDouble(),
                 locationName = "Position choisie",
                 location = position,
                 level = levelSlug(difficulty),
-                capacity = 12,
+                capacity = capacity,
             ),
         )
     }

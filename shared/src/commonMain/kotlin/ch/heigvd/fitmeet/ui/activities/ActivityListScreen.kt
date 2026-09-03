@@ -3,7 +3,9 @@ package ch.heigvd.fitmeet.ui.activities
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
@@ -11,6 +13,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,10 +24,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlin.time.Clock
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
 import ch.heigvd.fitmeet.data.activities.sampleActivities
 import ch.heigvd.fitmeet.model.Activity
+import ch.heigvd.fitmeet.model.distanceFrom
+import ch.heigvd.fitmeet.ui.map.LocationEffect
 import ch.heigvd.fitmeet.ui.components.ActivityCard
+import ch.heigvd.fitmeet.ui.theme.Sport
 import ch.heigvd.fitmeet.ui.components.EmptyState
+import ch.heigvd.fitmeet.ui.components.DateRange
+import ch.heigvd.fitmeet.ui.components.FilterSheet
+import ch.heigvd.fitmeet.ui.components.SportFilterBar
 import ch.heigvd.fitmeet.ui.components.ErrorState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,14 +46,40 @@ import ch.heigvd.fitmeet.ui.components.ErrorState
 fun ActivityListScreen(
     state: ActivityListUiState = ActivityListUiState.Success(sampleActivities),
     onActivityClick: (String) -> Unit = {},
-    onJoin: (String) -> Unit = {},
+    onToggleJoin: (String) -> Unit = {},
     onRetry: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    // a Set, so a sport cannot be picked twice. empty means "no filter".
+    var selectedSports by remember { mutableStateOf(emptySet<Sport>()) }
+    var dateRange by remember { mutableStateOf(DateRange.ALL) }
+    var onlyWithSpots by remember { mutableStateOf(false) }
+    var filtersOpen by remember { mutableStateOf(false) }
+
+    // iso days, so the date filters are plain string comparisons
+    val zone = TimeZone.currentSystemDefault()
+    val today = remember { Clock.System.now().toLocalDateTime(zone).date.toString() }
+    val inAWeek = remember {
+        Clock.System.now().plus(7, DateTimeUnit.DAY, zone).toLocalDateTime(zone).date.toString()
+    }
+
+    // what the badge on the funnel counts: every active filter, not just sports
+    val activeFilters = selectedSports.size +
+        (if (dateRange != DateRange.ALL) 1 else 0) +
+        (if (onlyWithSpots) 1 else 0)
     // the activity shown in the bottom sheet, null when it is closed.
     // kept here and not in the navigation: the list stays behind the sheet
     // and never loses its scroll position.
     var selected by remember { mutableStateOf<Activity?>(null) }
+
+    // the phone position, from the same source the map uses.
+    // null until the user answers the permission prompt.
+    var myLat by remember { mutableStateOf<Double?>(null) }
+    var myLng by remember { mutableStateOf<Double?>(null) }
+    LocationEffect { lat, lng ->
+        myLat = lat
+        myLng = lng
+    }
 
     // when on a sealed class is exhaustive: add a state and this stops
     // compiling until it is handled here too
@@ -58,21 +100,60 @@ fun ActivityListScreen(
                 return
             }
 
-            // sortedBy returns a new list, it does not touch the one we got.
-            // iso dates sort as plain text, so no date parsing needed here.
-            // TODO: sort by distance first once the events carry coordinates (#75)
-            val sorted = state.activities.sortedBy { it.startsAt }
+            // distance first, then date, like the issue asks.
+            // nullsLast matters: compareBy alone puts nulls FIRST, so an
+            // activity without coordinates would look like the closest one.
+            // iso dates sort as plain text, no parsing needed.
+            val sorted = state.activities.sortedWith(
+                compareBy<Activity, Double?>(nullsLast()) { it.distanceFrom(myLat, myLng) }
+                    .thenBy { it.startsAt },
+            )
+
+            // no sport picked means everything, otherwise keep the matches
+            val visible = sorted
+                .filter { selectedSports.isEmpty() || it.sport in selectedSports }
+                .filter { !onlyWithSpots || !it.isFull }
+                .filter {
+                    // startsAt is iso, so comparing the first characters is
+                    // enough: same day means same "yyyy-mm-dd" prefix
+                    when (dateRange) {
+                        DateRange.ALL -> true
+                        DateRange.TODAY -> it.startsAt.take(10) == today
+                        DateRange.THIS_WEEK -> it.startsAt.take(10) <= inAWeek
+                    }
+                }
 
             // LazyColumn and not Column: it only builds the rows that are on
             // screen, so a long list stays smooth
-            LazyColumn(
-                modifier = modifier.fillMaxSize(),
+            Column(modifier = modifier.fillMaxSize()) {
+                SportFilterBar(
+                    activeFilters = activeFilters,
+                    onOpenFilters = { filtersOpen = true },
+                    selected = selectedSports,
+                    onToggle = { sport ->
+                        // plus and minus on a Set return a new Set, they do
+                        // not change the old one: that is what compose needs
+                        // to notice the change and redraw
+                        selectedSports =
+                            if (sport in selectedSports) selectedSports - sport
+                            else selectedSports + sport
+                    },
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+
+                if (visible.isEmpty()) {
+                    EmptyState("Aucune activité pour ce filtre")
+                    return@Column
+                }
+
+                LazyColumn(
                 // contentPadding is the space before the first card and after the
                 // last one, spacedBy below is the gap between two cards
                 contentPadding = PaddingValues(top = 20.dp, bottom = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(11.dp), // gap measured on the mockup
+                verticalArrangement = Arrangement.spacedBy(14.dp), // 11 on the mockup, a bit more here so
+                    // the pale tinted blocks do not run into each other
             ) {
-                items(sorted, key = { it.id }) { activity ->
+                items(visible, key = { it.id }) { activity ->
                     ActivityCard(
                         title = activity.title,
                         sport = activity.sport,
@@ -81,11 +162,30 @@ fun ActivityListScreen(
                         level = activity.level,
                         participants = activity.participants,
                         capacity = activity.capacity,
+                        isJoined = activity.isJoined,
+                        canLeave = activity.canLeave,
                         onClick = {
                             selected = activity
                             onActivityClick(activity.id)
                         },
-                        onJoin = { onJoin(activity.id) },
+                        onJoin = { onToggleJoin(activity.id) },
+                    )
+                }
+            }
+
+            if (filtersOpen) {
+                ModalBottomSheet(onDismissRequest = { filtersOpen = false }) {
+                    FilterSheet(
+                        dateRange = dateRange,
+                        onDateRange = { dateRange = it },
+                        onlyWithSpots = onlyWithSpots,
+                        onOnlyWithSpots = { onlyWithSpots = it },
+                        onClearAll = {
+                            selectedSports = emptySet()
+                            dateRange = DateRange.ALL
+                            onlyWithSpots = false
+                        },
+                        onClose = { filtersOpen = false },
                     )
                 }
             }
@@ -96,11 +196,19 @@ fun ActivityListScreen(
                     onDismissRequest = { selected = null },
                     sheetState = sheetState,
                 ) {
-                    ActivityDetailScreen(activity = activity)
+                    // the sheet reads the fresh copy from the state, so the
+                    // button flips there too without closing it
+                    val live = (state as? ActivityListUiState.Success)
+                        ?.activities?.firstOrNull { it.id == activity.id } ?: activity
+                    ActivityDetailScreen(
+                        activity = live,
+                        onJoin = { onToggleJoin(live.id) },
+                    )
                 }
             }
         }
     }
+}
 }
 
 @Preview

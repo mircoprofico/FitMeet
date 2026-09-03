@@ -21,6 +21,8 @@ import ch.heigvd.fitmeet.navigation.AuthGraph
 import ch.heigvd.fitmeet.navigation.Login
 import ch.heigvd.fitmeet.navigation.MainGraph
 import ch.heigvd.fitmeet.navigation.Onboarding
+import ch.heigvd.fitmeet.navigation.PasswordReset
+import ch.heigvd.fitmeet.data.auth.AuthCallback
 import ch.heigvd.fitmeet.data.activities.ActivityRepository
 import ch.heigvd.fitmeet.data.activities.PreviewActivityRepository
 import ch.heigvd.fitmeet.data.auth.AuthRepository
@@ -43,59 +45,68 @@ fun App(
     eventRepository: EventRepository = PreviewEventRepository,
     authenticationCallbackUrl: String? = null,
 ) {
-      MaterialTheme {
-      val navController = rememberNavController()
-      var onboardingState by remember { mutableStateOf(OnboardingState()) }
+    MaterialTheme {
+        val navController = rememberNavController()
+        var onboardingState by remember { mutableStateOf(OnboardingState()) }
 
-      LaunchedEffect(authRepository, profileRepository, authenticationCallbackUrl) {
-          val state = if (authenticationCallbackUrl != null) {
-              val result = authRepository.handleAuthenticationCallback(authenticationCallbackUrl)
-              if (!result.isSuccess) null else profileRepository.getOnboardingState()
-          } else {
-              val restored = authRepository.restoreSession()
-              if (restored.isAuthenticated) profileRepository.getOnboardingState() else null
-          }
+        LaunchedEffect(authRepository, profileRepository, authenticationCallbackUrl) {
+            val state = if (authenticationCallbackUrl != null) {
+                val result = authRepository.handleAuthenticationCallback(authenticationCallbackUrl)
+                when (result.getOrNull()) {
+                    AuthCallback.PasswordRecovery -> {
+                        navController.navigate(PasswordReset) {
+                            popUpTo(Login) { inclusive = true }
+                        }
+                        null
+                    }
+                    AuthCallback.EmailConfirmation -> profileRepository.getOnboardingState()
+                    null -> null
+                }
+            } else {
+                val restored = authRepository.restoreSession()
+                if (restored.isAuthenticated) profileRepository.getOnboardingState() else null
+            }
 
-          state?.let {
-              onboardingState = it
-              if (it.complete) {
-                  navController.navigate(MainGraph) {
-                      popUpTo(AuthGraph) { inclusive = true }
-                      launchSingleTop = true
-                  }
-              } else {
-                  navController.navigate(Onboarding) {
-                      popUpTo(Login) { inclusive = true }
-                      launchSingleTop = true
-                  }
-              }
-          }
-      }
+            state?.let {
+                onboardingState = it
+                if (it.complete) {
+                    navController.navigate(MainGraph) {
+                        popUpTo(AuthGraph) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                } else {
+                    navController.navigate(Onboarding) {
+                        popUpTo(Login) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+        }
 
-      val backStackEntry by navController.currentBackStackEntryAsState()
-      val currentDestination = backStackEntry?.destination
+        val backStackEntry by navController.currentBackStackEntryAsState()
+        val currentDestination = backStackEntry?.destination
 
-      Scaffold(
-          bottomBar = {
-              if (currentDestination?.hierarchy?.any {
-                  it.hasRoute(MainGraph::class)
-              } == true) {
-                  BottomBar(navController, currentDestination)
-              }
-          },
-      ) { padding ->
-          // only one NavHost here, it holds both AuthGraph and MainGraph
-          FitMeetNavHost(
-              navController = navController,
-              modifier = Modifier.padding(padding),
-              authRepository = authRepository,
-              profileRepository = profileRepository,
-              conversationRepository = conversationRepository,
-              eventRepository = eventRepository,
-              activityRepository = activityRepository,
-              onboardingState = onboardingState,
-              onOnboardingStateChanged = { onboardingState = it },
-          )
-      }
-  }
+        Scaffold(
+            bottomBar = {
+                if (currentDestination?.hierarchy?.any {
+                    it.hasRoute(MainGraph::class)
+                } == true) {
+                    BottomBar(navController, currentDestination)
+                }
+            },
+        ) { padding ->
+            // only one NavHost here, it holds both AuthGraph and MainGraph
+            FitMeetNavHost(
+                navController = navController,
+                modifier = Modifier.padding(padding),
+                authRepository = authRepository,
+                profileRepository = profileRepository,
+                conversationRepository = conversationRepository,
+                eventRepository = eventRepository,
+                activityRepository = activityRepository,
+                onboardingState = onboardingState,
+                onOnboardingStateChanged = { onboardingState = it },
+            )
+        }
+    }
 }

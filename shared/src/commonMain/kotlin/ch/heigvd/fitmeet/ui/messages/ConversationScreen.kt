@@ -22,6 +22,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -48,10 +50,8 @@ import androidx.navigation.NavHostController
 import ch.heigvd.fitmeet.data.messages.ConversationMessage
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
 import ch.heigvd.fitmeet.data.messages.ConversationSummary
-import ch.heigvd.fitmeet.navigation.ActivityList
-import ch.heigvd.fitmeet.navigation.Conversation
-import ch.heigvd.fitmeet.ui.activities.activityData
-import ch.heigvd.fitmeet.ui.activities.reset
+import ch.heigvd.fitmeet.model.Activity
+import ch.heigvd.fitmeet.ui.activities.ActivityDetailScreen
 import kotlinx.coroutines.launch
 
 
@@ -68,21 +68,23 @@ fun ConversationScreen(
     var messages by remember { mutableStateOf<List<ConversationMessage>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var activity by remember { mutableStateOf<Activity?>(null) }
     var conversationSummary by remember { mutableStateOf<ConversationSummary?>(null) }
-    var showDetails by remember { mutableStateOf(false) }
     var isLeaving by remember { mutableStateOf(false) }
     val currentUserId = conversationRepository.currentUserId()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-
+    var showDetails by remember { mutableStateOf(false) }
 
 
 
     LaunchedEffect(conversationRepository, conversationId) {
-        conversationRepository.getAccessibleConversations()
-            .onSuccess { conversations ->
-                conversationSummary = conversations.firstOrNull { it.conversationId == conversationId }
+        conversationRepository.getConversationSummary(conversationId)
+            .onSuccess { summary ->
+                conversationSummary = summary
+                activity = summary.activity
             }
+
         conversationRepository.getMessages(conversationId)
             .onSuccess {
                 messages = it
@@ -141,25 +143,31 @@ fun ConversationScreen(
 
                     Button(
                         onClick = { navController.popBackStack() },
+                        modifier = Modifier.size(48.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFF0000),
+                            containerColor = Color.Transparent,
+                            contentColor = Navy,
                         ),
-                        shape = RoundedCornerShape(6.dp),
-                        modifier = Modifier.padding(16.dp).size(40.dp),
-                        contentPadding = PaddingValues(0.dp)
+                        contentPadding = PaddingValues(0.dp),
                     ) {
-                        Text(
-                            "X",
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.W900,
-                            color = Color(0xFFFFFFFF),
-                            fontSize = 18.sp
-                        )
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = "←",
+                                fontSize = 30.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Navy,
+                            )
+                        }
                     }
 
 
+
+
                     Text(
-                        text = conversationTitle,
+                        text = activity?.title ?: conversationTitle,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.W900,
                         color = textColor,
@@ -168,8 +176,9 @@ fun ConversationScreen(
                     Spacer(modifier = Modifier.weight(1f))
 
                     Button(
-                        onClick = { showDetails = true },
-                        enabled = conversationSummary != null,
+                        onClick = {
+                            showDetails = true
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFEEEEEE),
                         ),
@@ -189,7 +198,7 @@ fun ConversationScreen(
             }
 
             when {
-                isLoading -> Text("Chargement des messages...", modifier = Modifier.padding(24.dp))
+                isLoading -> Text("Chargement des messages...", modifier = Modifier.padding(24.dp).weight(1f))
                 errorMessage != null -> Text(
                     text = errorMessage.orEmpty(),
                     modifier = Modifier.padding(24.dp),
@@ -316,50 +325,40 @@ fun ConversationScreen(
             }
         }
 
-        conversationSummary?.let { summary ->
-            if (showDetails) {
-                ModalBottomSheet(
-                    onDismissRequest = { showDetails = false },
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        Text(summary.title, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                        summary.description?.takeIf { it.isNotBlank() }?.let { description ->
-                            Text(description, color = Color(0xFF4C5652))
-                        }
-                        Text("Début : ${summary.startsAt}")
-                        Text("Lieu : ${summary.locationName}")
 
-                        if (!summary.isOrganizer) {
-                            Button(
-                                onClick = {
-                                    scope.launch {
-                                        isLeaving = true
-                                        val result = conversationRepository.leaveActivity(summary.eventId)
-                                        if (result.isSuccess) {
-                                                showDetails = false
-                                                navController.popBackStack()
-                                        } else {
-                                            errorMessage = result.message
-                                        }
-                                        isLeaving = false
-                                    }
-                                },
-                                enabled = !isLeaving,
-                                modifier = Modifier.fillMaxWidth().height(48.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC62828)),
-                            ) {
-                                Text(if (isLeaving) "Sortie..." else "Quitter l'activité")
+        if (showDetails) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    showDetails = false
+                },
+                sheetState = rememberModalBottomSheetState(
+                    skipPartiallyExpanded = true
+                )
+            ) {
+                activity?.let {
+                    ActivityDetailScreen(
+                        activity = it,
+                        showJoinButton = false,
+                        showLeaveButton = conversationSummary?.isOrganizer == false,
+                        isLeaving = isLeaving,
+                        onLeave = {
+                            scope.launch {
+                                isLeaving = true
+                                val result = conversationRepository.leaveActivity(it.id)
+                                isLeaving = false
+                                if (result.isSuccess) {
+                                    showDetails = false
+                                    navController.popBackStack()
+                                } else {
+                                    errorMessage = result.message
+                                }
                             }
-                        }
-                    }
+                        },
+                    )
                 }
+
             }
         }
+
     }
 }

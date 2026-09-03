@@ -45,67 +45,72 @@ private val LightText = Color(0xFFE6E7EA)
 
 @Preview
 @Composable
-fun LoginScreen(
-    onCreateAccount: () -> Unit = {},
-    onLogin: suspend (String, String) -> AuthActionResult = { _, _ -> AuthActionResult(true, "Aperçu") },
-    onForgotPassword: suspend (String) -> AuthActionResult = { AuthActionResult(true, "Aperçu") },
+fun PasswordResetScreen(
+    onPasswordReset: suspend (String) -> AuthActionResult = { _ -> AuthActionResult(true, "Aperçu") },
+    onPasswordResetSuccess: () -> Unit = {},
 ) {
-    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<AuthActionResult?>(null) }
     val scope = rememberCoroutineScope()
+    val passwordsMatch = password == confirmPassword
+    val showConfirmationError = confirmPassword.isNotEmpty() && !passwordsMatch
 
     MaterialTheme {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Navy)
-                .padding(horizontal = 28.dp, vertical = 48.dp),
+            modifier = Modifier.fillMaxSize().background(Navy).padding(horizontal = 28.dp, vertical = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(modifier = Modifier.height(32.dp))
             Image(painterResource(Res.drawable.logo), "FitMeet", modifier = Modifier.height(84.dp))
             Spacer(modifier = Modifier.height(48.dp))
-            Text("Connectez-vous", color = LightText, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text("Rénitialisez votre mot de passe", color = LightText, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(28.dp))
 
             Column(modifier = Modifier.widthIn(max = 420.dp)) {
-                LoginTextField(email, { email = it }, "Adresse e-mail", KeyboardType.Email)
-                Spacer(modifier = Modifier.height(14.dp))
-                LoginTextField(password, { password = it }, "Mot de passe", KeyboardType.Password, isPassword = true)
-                Spacer(modifier = Modifier.height(24.dp))
-                Button(
-                    onClick = {
-                        if (email.isBlank() || password.isBlank()) message = AuthActionResult(false, "Saisissez votre e-mail et votre mot de passe.")
-                        else scope.launch { message = onLogin(email.trim(), password) }
-                    },
-                    shape = RoundedCornerShape(6.dp),
-                    modifier = Modifier.fillMaxWidth(0.5f).align(Alignment.CenterHorizontally),
-                    colors = ButtonDefaults.buttonColors(containerColor = Green, contentColor = Color.White),
-                ) { Text("Se connecter", fontWeight = FontWeight.Bold) }
-
+                pwResetTextField(password, { password = it }, "Nouveau mot de passe", KeyboardType.Password, true, passwordVisible) {
+                    passwordVisible = !passwordVisible
+                }
+                pwResetTextField(confirmPassword, { confirmPassword = it }, "Confirmation de mot passe", KeyboardType.Password, true, passwordVisible, showConfirmationError) {
+                    passwordVisible = !passwordVisible
+                }
+                if (showConfirmationError) Text("Les mots de passe ne correspondent pas", color = Color(0xFFFFB4AB))
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
-            message?.let {
-                Text(it.message, color = if (it.isSuccess) Green else Color(0xFFFFB4AB))
-            }
-            TextButton(onClick = {
-                if (email.isBlank()) message = AuthActionResult(false, "Saisissez votre e-mail.")
-                else scope.launch { message = onForgotPassword(email.trim()) }
-            }) { Text("Mot de passe oublié ?", color = LightText) }
-            TextButton(onClick = onCreateAccount) { Text("Créer un compte", color = Color.Yellow, fontWeight = FontWeight.Bold) }
+            Button(
+                onClick = {
+                    when {
+                        !passwordsMatch -> message = AuthActionResult(false, "Les mots de passe ne correspondent pas.")
+                        else -> scope.launch {
+                            val result = onPasswordReset(password)
+                            message = result
+                            if (result.isSuccess) onPasswordResetSuccess()
+                        }
+                    }
+                },
+                shape = RoundedCornerShape(6.dp),
+                modifier = Modifier.fillMaxWidth(0.5f).align(Alignment.CenterHorizontally),
+                colors = ButtonDefaults.buttonColors(containerColor = Green, contentColor = Color.White),
+            ) { Text("Rénitialiser", fontWeight = FontWeight.Bold) }
+
+            message?.let { Text(it.message, color = if (it.isSuccess) Green else Color(0xFFFFB4AB)) }
             Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-private fun LoginTextField(
+private fun pwResetTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
     keyboardType: KeyboardType,
     isPassword: Boolean = false,
+    showPassword: Boolean = false,
+    isError: Boolean = false,
+    onTogglePasswordVisibility: (() -> Unit)? = null,
 ) {
     OutlinedTextField(
         value = value,
@@ -113,8 +118,14 @@ private fun LoginTextField(
         modifier = Modifier.fillMaxWidth(),
         placeholder = { Text(label, color = LightText) },
         singleLine = true,
+        isError = isError,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+        visualTransformation = if (isPassword && !showPassword) PasswordVisualTransformation() else VisualTransformation.None,
+        trailingIcon = {
+            if (isPassword) TextButton(onClick = { onTogglePasswordVisibility?.invoke() }) {
+                Text(if (showPassword) "Masquer" else "Afficher")
+            }
+        },
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Green,
             unfocusedBorderColor = LightText.copy(alpha = 0.7f),
