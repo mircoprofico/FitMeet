@@ -125,10 +125,16 @@ fun FitMeetNavHost(
                 // tab and coming back does not fire a new request
                 val viewModel = remember { ActivityListViewModel(activityRepository) }
                 val state by viewModel.uiState.collectAsState()
+                val isRefreshing by viewModel.isRefreshing.collectAsState()
+                val attendees by viewModel.attendees.collectAsState()
                 ActivityListScreen(
                     state = state,
+                    onActivityClick = viewModel::loadAttendees,
+                    attendees = attendees,
                     onToggleJoin = viewModel::toggleJoin,
                     onRetry = viewModel::refresh,
+                    isRefreshing = isRefreshing,
+                    onRefresh = viewModel::refreshFromPull,
                 )
             }
             composable<MapTab> { MapTabScreen(activityRepository) }
