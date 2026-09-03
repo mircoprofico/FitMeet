@@ -21,10 +21,17 @@ data class Activity(
     val level: Level,
     val participants: Int,
     val capacity: Int,
+    // whether the signed in user attends, and whether they organise it.
+    // an organizer attends by definition and cannot leave.
+    val isJoined: Boolean = false,
+    val isOrganizer: Boolean = false,
 ) {
     // handy for the card: hides the "3/10" formatting and the full check
     val attendance: String get() = "$participants/$capacity"
     val isFull: Boolean get() = participants >= capacity
+
+    // an organizer is stuck with their own event, everyone else can leave
+    val canLeave: Boolean get() = isJoined && !isOrganizer
 
     companion object {
         fun fromEvent(
@@ -37,6 +44,8 @@ data class Activity(
             levelSlug: String,
             participants: Int,
             capacity: Int,
+            isJoined: Boolean = false,
+            isOrganizer: Boolean = false,
         ) = Activity(
             id = id,
             title = title,
@@ -63,6 +72,8 @@ data class Activity(
             },
             participants = participants,
             capacity = capacity,
+            isJoined = isJoined || isOrganizer,
+            isOrganizer = isOrganizer,
         )
 
         private fun displayDate(startsAt: String): String {

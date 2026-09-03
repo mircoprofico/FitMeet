@@ -123,6 +123,7 @@ fun FitMeetNavHost(
                 ActivityListScreen(
                     state = state,
                     onRetry = viewModel::refresh,
+                    onJoin = viewModel::toggleJoin,
                 )
             }
             composable<MapTab> { MapScreen() }

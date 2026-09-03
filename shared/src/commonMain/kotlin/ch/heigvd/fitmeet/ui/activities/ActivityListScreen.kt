@@ -113,6 +113,8 @@ fun ActivityListScreen(
                         level = activity.level,
                         participants = activity.participants,
                         capacity = activity.capacity,
+                        isJoined = activity.isJoined,
+                        canLeave = activity.canLeave,
                         onClick = {
                             selected = activity
                             onActivityClick(activity.id)
@@ -128,7 +130,14 @@ fun ActivityListScreen(
                     onDismissRequest = { selected = null },
                     sheetState = sheetState,
                 ) {
-                    ActivityDetailScreen(activity = activity)
+                    // the sheet reads the fresh copy from the state, so the
+                    // button flips there too without closing it
+                    val live = (state as? ActivityListUiState.Success)
+                        ?.activities?.firstOrNull { it.id == activity.id } ?: activity
+                    ActivityDetailScreen(
+                        activity = live,
+                        onJoin = { onJoin(live.id) },
+                    )
                 }
             }
         }
