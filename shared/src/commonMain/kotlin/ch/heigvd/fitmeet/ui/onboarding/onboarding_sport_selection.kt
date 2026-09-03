@@ -72,7 +72,15 @@ fun onboarding_2_sports(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Column(modifier = Modifier.widthIn(max = 420.dp)) {
+            // This column gets only the remaining screen height. Without the
+            // weight, the sport list measures as high as it wants and pushes
+            // the confirmation button below the visible viewport on iPhone.
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 420.dp)
+                    .weight(1f),
+            ) {
                 Text(
                     text = "Quels sports pratiquez-vous ?",
                     color = LightText,
@@ -126,7 +134,10 @@ fun onboarding_2_sports(
                     }
                 },
                 enabled = !isSaving,
-                modifier = Modifier.align(Alignment.End),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 420.dp)
+                    .height(48.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Green, contentColor = Color.White),
             ) {
                 Text(if (isSaving) "Enregistrement…" else "Terminer", fontWeight = FontWeight.Bold)
