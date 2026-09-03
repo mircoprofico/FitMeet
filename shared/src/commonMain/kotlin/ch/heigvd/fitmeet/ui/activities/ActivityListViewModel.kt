@@ -41,16 +41,24 @@ class ActivityListViewModel(
             val result = if (joining) repository.join(activityId)
                          else repository.leave(activityId)
             if (result.isFailure) _uiState.value = current
-            refresh()
+            // The optimistic state is already on screen. Refresh it quietly
+            // so tapping the action never replaces the list with a loader.
+            refresh(showLoading = false)
         }
     }
 
-    fun refresh() {
+    fun refresh(showLoading: Boolean = true) {
         viewModelScope.launch {
-            _uiState.value = ActivityListUiState.Loading
+            if (showLoading) _uiState.value = ActivityListUiState.Loading
             _uiState.value = repository.nearbyActivities().fold(
                 onSuccess = { ActivityListUiState.Success(it) },
-                onFailure = { ActivityListUiState.Error("Impossible de charger les activités") },
+                onFailure = {
+                    // While an existing list is visible, keep it on a
+                    // transient refresh failure. Initial loading still gets
+                    // the normal retryable error screen.
+                    if (showLoading) ActivityListUiState.Error("Impossible de charger les activités")
+                    else _uiState.value
+                },
             )
         }
     }
