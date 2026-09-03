@@ -47,11 +47,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import ch.heigvd.fitmeet.data.messages.ConversationMessage
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
-import ch.heigvd.fitmeet.navigation.ActivityList
-import ch.heigvd.fitmeet.navigation.Conversation
+import ch.heigvd.fitmeet.model.Activity
 import ch.heigvd.fitmeet.ui.activities.ActivityDetailScreen
-import ch.heigvd.fitmeet.ui.activities.activityData
-import ch.heigvd.fitmeet.ui.activities.reset
 import kotlinx.coroutines.launch
 
 
@@ -68,6 +65,7 @@ fun ConversationScreen(
     var messages by remember { mutableStateOf<List<ConversationMessage>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var activity by remember { mutableStateOf<Activity?>(null) }
     val currentUserId = conversationRepository.currentUserId()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -76,6 +74,9 @@ fun ConversationScreen(
 
 
     LaunchedEffect(conversationRepository, conversationId) {
+        conversationRepository.getConversationSummary(conversationId)
+            .onSuccess { activity = it.activity }
+
         conversationRepository.getMessages(conversationId)
             .onSuccess {
                 messages = it
@@ -152,7 +153,7 @@ fun ConversationScreen(
 
 
                     Text(
-                        text = conversationTitle,
+                        text = activity?.title ?: conversationTitle,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.W900,
                         color = textColor,
@@ -320,99 +321,15 @@ fun ConversationScreen(
                     skipPartiallyExpanded = true
                 )
             ) {
-                ActivityInfoPlaceholder() // todo Là on doit utiliser la vrai activité
-                // ActivityDetailScreen(activity = activity) <-
+                activity?.let {
+                    ActivityDetailScreen(
+                        activity = it,
+                        showJoinButton = false,
+                    )
+                }
 
             }
         }
 
-    }
-}
-
-// todo supprimer ce truc une fois qu'on a la vrai activité
-@Composable
-private fun ActivityInfoPlaceholder() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = 24.dp,
-                end = 24.dp,
-                bottom = 32.dp
-            )
-    ) {
-        Text(
-            text = "Informations sur l'activité",
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold,
-            color = Navy
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = "🏀 Basketball entre amis",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = "📅 Samedi 12 septembre 2026",
-            fontSize = 18.sp,
-            color = Color.DarkGray
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "🕐 14:00 – 16:00",
-            fontSize = 18.sp,
-            color = Color.DarkGray
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "📍 Yverdon-les-Bains",
-            fontSize = 18.sp,
-            color = Color.DarkGray
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "🎯 Niveau : Intermédiaire",
-            fontSize = 18.sp,
-            color = Color.DarkGray
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "👥 Participants : 5 / 10",
-            fontSize = 18.sp,
-            color = Color.DarkGray
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Description",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Navy
-        )
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        Text(
-            text = "Une partie de basketball conviviale pour passer " +
-                    "un bon moment et rencontrer d'autres joueurs.",
-            fontSize = 17.sp,
-            color = Color.DarkGray
-        )
     }
 }

@@ -64,6 +64,7 @@ class SupabaseEventRepository(
             "Le type de l'activité est obligatoire."
         }
         require(position.startsWith("POINT(")) { "La position de l'activité est invalide." }
+        require(capacity in 1..10_000) { "La capacité de l'activité est invalide." }
 
         val startsAt = parseDateTime(date, time)
         val endsAt = startsAt.plus(duration.coerceAtLeast(0).toLong(), DateTimeUnit.MINUTE)
@@ -79,7 +80,7 @@ class SupabaseEventRepository(
                 locationName = "Position choisie",
                 location = position,
                 level = levelSlug(difficulty),
-                capacity = 12,
+                capacity = capacity,
             ),
         )
     }

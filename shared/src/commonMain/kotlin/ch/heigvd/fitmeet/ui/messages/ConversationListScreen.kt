@@ -28,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -37,12 +36,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import ch.heigvd.fitmeet.data.activities.ActivityRepository
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
 import ch.heigvd.fitmeet.data.messages.ConversationSummary
 import ch.heigvd.fitmeet.navigation.Conversation
-import ch.heigvd.fitmeet.ui.activities.activityData
-import ch.heigvd.fitmeet.ui.theme.Sport
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -127,12 +123,14 @@ fun ConversationListScreen(
                                     shape = RoundedCornerShape(10.dp)
                                 )
                                 .clickable {
-                                    navController.navigate(Conversation(conversation.conversationId, conversation.title))
+                                    navController.navigate(
+                                        Conversation(conversation.conversationId, conversation.activity.title),
+                                    )
                                 },
                             contentAlignment = Alignment.CenterStart,
                         ) {
 
-                            val currentSport = Sport.TENNIS // Todo change that to have sport based on id
+                            val currentSport = conversation.activity.sport
                             Row(){
                                 Box(
                                     modifier = Modifier
@@ -155,7 +153,7 @@ fun ConversationListScreen(
 
                                 Column(modifier = Modifier.padding(start = 15.dp)) {
                                 Text(
-                                    text = conversation.title,
+                                    text = conversation.activity.title,
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.W600,
                                 )
