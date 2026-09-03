@@ -125,22 +125,6 @@ fun ActivityCard(
                     LevelChip(level)
                     Spacer(Modifier.weight(1f))
                     Button(
-                        onClick = {}, // TODO: open the detail sheet
-                        // square 27x27, sizes measured on the mockup.
-                        // m3 buttons are 40dp min so we force the size and
-                        // zero the padding, otherwise the text pushes it wider
-                        modifier = Modifier.size(27.dp),
-                        contentPadding = PaddingValues(0.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFE3E3E3),
-                            contentColor = Color(0xFF8A8A8A),
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                    ) {
-                        Text("i", fontSize = 12.sp)
-                    }
-                    Spacer(Modifier.width(3.dp))
-                    Button(
                         onClick = onJoin,
                         modifier = Modifier.width(111.dp).height(27.dp),
                         contentPadding = PaddingValues(0.dp),

@@ -16,6 +16,10 @@ data class Activity(
     // already formatted for the card, "Aujourd'hui - 14h30"
     val dateTime: String,
     val place: String,
+    // coordinates of the spot, null when the row has none.
+    // used to sort by distance from the phone.
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val level: Level,
     val participants: Int,
     val capacity: Int,

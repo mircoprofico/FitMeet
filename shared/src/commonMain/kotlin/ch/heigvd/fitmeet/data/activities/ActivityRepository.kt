@@ -18,6 +18,8 @@ private data class EventRow(
     @SerialName("sport_slug") val sportSlug: String,
     @SerialName("starts_at") val startsAt: String,
     @SerialName("location_name") val locationName: String,
+    // postgis WKT, "POINT(lng lat)". null when the row has no spot.
+    val location: String? = null,
     val level: String,
     val capacity: Int,
 )
@@ -74,6 +76,16 @@ private fun displayDate(startsAt: String): String {
     return "$day.$month - ${time.replace(':', 'h')}"
 }
 
+// "POINT(6.6323 46.5197)" -> 46.5197 to 6.6323. longitude comes first in WKT.
+private fun parsePoint(wkt: String?): Pair<Double, Double>? {
+    val inside = wkt?.substringAfter("POINT(", "")?.substringBefore(")") ?: return null
+    val parts = inside.trim().split(" ")
+    if (parts.size != 2) return null
+    val lng = parts[0].toDoubleOrNull() ?: return null
+    val lat = parts[1].toDoubleOrNull() ?: return null
+    return lat to lng
+}
+
 private fun EventRow.toActivity() = Activity(
     id = id,
     title = title,
@@ -81,6 +93,8 @@ private fun EventRow.toActivity() = Activity(
     startsAt = startsAt,
     dateTime = displayDate(startsAt),
     place = locationName,
+    latitude = parsePoint(location)?.first,
+    longitude = parsePoint(location)?.second,
     level = levelOf(level),
     // TODO: real count from event_participants, needs a join or a view
     participants = 0,
