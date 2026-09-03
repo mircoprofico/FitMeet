@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.UIKitView
+import ch.heigvd.fitmeet.model.Activity
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCAction
@@ -74,6 +75,8 @@ actual fun PlatformMap(
     onMapClick: ((Double, Double) -> Unit)?,
     selectedLat: Double?,
     selectedLng: Double?,
+    activities: List<Activity>,
+    onActivityClick: ((Activity) -> Unit)?,
 ) {
     val currentOnMapClick = rememberUpdatedState(onMapClick)
 
