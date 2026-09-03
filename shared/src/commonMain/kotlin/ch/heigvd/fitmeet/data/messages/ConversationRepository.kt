@@ -26,9 +26,13 @@ data class ConversationSummary(
     @SerialName("conversation_id") val conversationId: String,
     @SerialName("event_id") val eventId: String,
     val title: String,
+    @SerialName("sport_slug") val sportSlug: String? = null,
     @SerialName("starts_at") val startsAt: String,
-    @SerialName("ends_at") val endsAt: String,
     @SerialName("location_name") val locationName: String,
+    val description: String? = null,
+    val level: String? = null,
+    val capacity: Int? = null,
+    @SerialName("participant_count") val participantCount: Int? = null,
     @SerialName("is_organizer") val isOrganizer: Boolean,
     @SerialName("last_message_at") val lastMessageAt: String? = null,
 )
@@ -65,6 +69,7 @@ interface ConversationRepository {
         conversationId: String,
         content: String,
     ): AuthActionResult
+    suspend fun leaveActivity(eventId: String): AuthActionResult
 
     fun currentUserId(): String?
 }
@@ -141,6 +146,23 @@ class SupabaseConversationRepository internal constructor(
         }
     }
 
+    override suspend fun leaveActivity(eventId: String): AuthActionResult {
+        val currentUserId = currentUserId()
+            ?: return AuthActionResult(false, "Votre session a expiré. Reconnectez-vous.")
+
+        return runCatching {
+            supabase.from("event_participants").delete {
+                filter {
+                    eq("event_id", eventId)
+                    eq("user_id", currentUserId)
+                }
+            }
+            AuthActionResult(true, "Vous avez quitté l'activité.")
+        }.getOrElse { error ->
+            AuthActionResult(false, error.message ?: "Impossible de quitter l'activité.")
+        }
+    }
+
     override fun currentUserId(): String? = supabase.auth.currentUserOrNull()?.id
 
     private suspend fun loadMissingProfileNames(senderIds: List<String>) {
@@ -166,7 +188,6 @@ object PreviewConversationRepository : ConversationRepository {
             eventId = "preview-event",
             title = "Course au bord du lac",
             startsAt = "2026-09-15T18:30:00Z",
-            endsAt = "2026-09-15T19:30:00Z",
             locationName = "Lausanne",
             isOrganizer = false,
             lastMessageAt = null,
@@ -202,6 +223,9 @@ object PreviewConversationRepository : ConversationRepository {
     override suspend fun sendMessage(senderUserId: String, conversationId: String, content: String) =
         AuthActionResult(true, "Aperçu : message envoyé.")
 
+    override suspend fun leaveActivity(eventId: String) =
+        AuthActionResult(true, "Aperçu : activité quittée.")
+
     override fun currentUserId() = "preview-user"
 }
 
@@ -220,6 +244,8 @@ object UnconfiguredConversationRepository : ConversationRepository {
 
     override suspend fun sendMessage(senderUserId: String, conversationId: String, content: String) =
         AuthActionResult(false, message)
+
+    override suspend fun leaveActivity(eventId: String) = AuthActionResult(false, message)
 
     override fun currentUserId() = null
 }

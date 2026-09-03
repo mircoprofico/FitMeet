@@ -21,11 +21,14 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import ch.heigvd.fitmeet.data.messages.ConversationMessage
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
+import ch.heigvd.fitmeet.data.messages.ConversationSummary
 import ch.heigvd.fitmeet.navigation.ActivityList
 import ch.heigvd.fitmeet.navigation.Conversation
 import ch.heigvd.fitmeet.ui.activities.activityData
@@ -53,6 +57,7 @@ import kotlinx.coroutines.launch
 
 private val Navy = Color(0xFF102E53)
 private val Green = Color(0xFF429A72)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationScreen(
     conversationId: String = "",
@@ -63,6 +68,9 @@ fun ConversationScreen(
     var messages by remember { mutableStateOf<List<ConversationMessage>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var conversationSummary by remember { mutableStateOf<ConversationSummary?>(null) }
+    var showDetails by remember { mutableStateOf(false) }
+    var isLeaving by remember { mutableStateOf(false) }
     val currentUserId = conversationRepository.currentUserId()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -71,6 +79,10 @@ fun ConversationScreen(
 
 
     LaunchedEffect(conversationRepository, conversationId) {
+        conversationRepository.getAccessibleConversations()
+            .onSuccess { conversations ->
+                conversationSummary = conversations.firstOrNull { it.conversationId == conversationId }
+            }
         conversationRepository.getMessages(conversationId)
             .onSuccess {
                 messages = it
@@ -156,7 +168,8 @@ fun ConversationScreen(
                     Spacer(modifier = Modifier.weight(1f))
 
                     Button(
-                        onClick = {},
+                        onClick = { showDetails = true },
+                        enabled = conversationSummary != null,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFEEEEEE),
                         ),
@@ -299,6 +312,52 @@ fun ConversationScreen(
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                     )
+                }
+            }
+        }
+
+        conversationSummary?.let { summary ->
+            if (showDetails) {
+                ModalBottomSheet(
+                    onDismissRequest = { showDetails = false },
+                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        Text(summary.title, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        summary.description?.takeIf { it.isNotBlank() }?.let { description ->
+                            Text(description, color = Color(0xFF4C5652))
+                        }
+                        Text("Début : ${summary.startsAt}")
+                        Text("Lieu : ${summary.locationName}")
+
+                        if (!summary.isOrganizer) {
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        isLeaving = true
+                                        val result = conversationRepository.leaveActivity(summary.eventId)
+                                        if (result.isSuccess) {
+                                                showDetails = false
+                                                navController.popBackStack()
+                                        } else {
+                                            errorMessage = result.message
+                                        }
+                                        isLeaving = false
+                                    }
+                                },
+                                enabled = !isLeaving,
+                                modifier = Modifier.fillMaxWidth().height(48.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC62828)),
+                            ) {
+                                Text(if (isLeaving) "Sortie..." else "Quitter l'activité")
+                            }
+                        }
+                    }
                 }
             }
         }
