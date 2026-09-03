@@ -39,7 +39,7 @@ import fitmeet.shared.generated.resources.Res
 import fitmeet.shared.generated.resources.logo
 import org.jetbrains.compose.resources.painterResource
 
-private val Navy = Color(0xFF102E53)
+private val Navy = Color(0xFF0B2545)
 private val Green = Color(0xFF429A72)
 private val LightText = Color(0xFFE6E7EA)
 

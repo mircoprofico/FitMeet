@@ -36,9 +36,22 @@ import fitmeet.shared.generated.resources.logo
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 
-private val Navy = Color(0xFF102E53)
+private val Navy = Color(0xFF0B2545)
 private val Green = Color(0xFF429A72)
 private val LightText = Color(0xFFE6E7EA)
+
+private data class OnboardingSport(val slug: String, val label: String)
+
+private val onboardingSports = listOf(
+    OnboardingSport("football", "Football"),
+    OnboardingSport("basketball", "Basket"),
+    OnboardingSport("volleyball", "Volley"),
+    OnboardingSport("tennis", "Tennis"),
+    OnboardingSport("badminton", "Badminton"),
+    OnboardingSport("running", "Course"),
+    OnboardingSport("cycling", "Vélo"),
+    OnboardingSport("hiking", "Randonnée"),
+)
 
 @Preview
 @Composable
@@ -49,8 +62,12 @@ fun onboarding_2_sports(
     onFinish: suspend (String, String, Set<String>) -> AuthActionResult = { _, _, _ -> AuthActionResult(true, "Aperçu") },
     onSaved: () -> Unit = {},
 ) {
-    val activities = listOf("Football", "Basket", "Volley", "Tennis", "Badminton", "Course", "Vélo", "Randonnée")
-    var selectedSports by remember(initialSelectedSports) { mutableStateOf(initialSelectedSports) }
+    // Persist stable database slugs, not the French labels shown to users.
+    // The normalization keeps a user on the right choices if an older profile
+    // still contains labels from a previous app version.
+    var selectedSports by remember(initialSelectedSports) {
+        mutableStateOf(initialSelectedSports.map(::sportSlug).toSet())
+    }
     var message by remember { mutableStateOf<AuthActionResult?>(null) }
     var isSaving by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -72,7 +89,15 @@ fun onboarding_2_sports(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Column(modifier = Modifier.widthIn(max = 420.dp)) {
+            // This column gets only the remaining screen height. Without the
+            // weight, the sport list measures as high as it wants and pushes
+            // the confirmation button below the visible viewport on iPhone.
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 420.dp)
+                    .weight(1f),
+            ) {
                 Text(
                     text = "Quels sports pratiquez-vous ?",
                     color = LightText,
@@ -89,11 +114,11 @@ fun onboarding_2_sports(
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    items(activities, key = { it }) { activity ->
-                        val isSelected = activity in selectedSports
+                    items(onboardingSports, key = OnboardingSport::slug) { sport ->
+                        val isSelected = sport.slug in selectedSports
                         OutlinedButton(
                             onClick = {
-                                selectedSports = if (isSelected) selectedSports - activity else selectedSports + activity
+                                selectedSports = if (isSelected) selectedSports - sport.slug else selectedSports + sport.slug
                             },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.outlinedButtonColors(
@@ -101,7 +126,7 @@ fun onboarding_2_sports(
                                 containerColor = if (isSelected) Green else Color.Transparent,
                             ),
                         ) {
-                            Text(if (isSelected) "✓  $activity" else activity)
+                            Text(if (isSelected) "✓  ${sport.label}" else sport.label)
                         }
                     }
                 }
@@ -126,11 +151,26 @@ fun onboarding_2_sports(
                     }
                 },
                 enabled = !isSaving,
-                modifier = Modifier.align(Alignment.End),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 420.dp)
+                    .height(48.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Green, contentColor = Color.White),
             ) {
                 Text(if (isSaving) "Enregistrement…" else "Terminer", fontWeight = FontWeight.Bold)
             }
         }
     }
+}
+
+private fun sportSlug(value: String): String = when (value.trim().lowercase()) {
+    "football" -> "football"
+    "basket", "basketball" -> "basketball"
+    "volley", "volleyball" -> "volleyball"
+    "tennis" -> "tennis"
+    "badminton" -> "badminton"
+    "course", "running" -> "running"
+    "vélo", "cycling" -> "cycling"
+    "randonnée", "hiking" -> "hiking"
+    else -> value
 }

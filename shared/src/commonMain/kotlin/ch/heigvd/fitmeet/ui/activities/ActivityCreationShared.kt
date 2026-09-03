@@ -17,6 +17,9 @@ class ActivityData {
     var duration by mutableStateOf(-1)
 
     var position by mutableStateOf("")
+    // what the point is called, resolved by the phone's geocoder when the
+    // organiser picks it. empty when it could not be resolved.
+    var positionName by mutableStateOf("")
     var name by mutableStateOf("")
     var description by mutableStateOf("")
     var difficulty by mutableStateOf(Level.ALL)
@@ -32,6 +35,7 @@ fun ActivityData.reset() {
     time = ""
     duration = -1
     position = ""
+    positionName = ""
     name = ""
     description = ""
     difficulty = Level.ALL

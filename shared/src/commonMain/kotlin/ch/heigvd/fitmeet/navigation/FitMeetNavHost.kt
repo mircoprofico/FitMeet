@@ -28,6 +28,7 @@ import ch.heigvd.fitmeet.ui.auth.OnboardingScreen
 import ch.heigvd.fitmeet.ui.auth.PasswordResetScreen
 import ch.heigvd.fitmeet.ui.auth.RegisterScreen
 import ch.heigvd.fitmeet.ui.map.MapScreen
+import ch.heigvd.fitmeet.ui.map.MapTabScreen
 import ch.heigvd.fitmeet.ui.messages.ConversationListScreen
 import ch.heigvd.fitmeet.ui.messages.ConversationScreen
 import ch.heigvd.fitmeet.ui.profile.EditProfileScreen
@@ -124,13 +125,19 @@ fun FitMeetNavHost(
                 // tab and coming back does not fire a new request
                 val viewModel = remember { ActivityListViewModel(activityRepository) }
                 val state by viewModel.uiState.collectAsState()
+                val isRefreshing by viewModel.isRefreshing.collectAsState()
+                val attendees by viewModel.attendees.collectAsState()
                 ActivityListScreen(
                     state = state,
+                    onActivityClick = viewModel::loadAttendees,
+                    attendees = attendees,
                     onToggleJoin = viewModel::toggleJoin,
                     onRetry = viewModel::refresh,
+                    isRefreshing = isRefreshing,
+                    onRefresh = viewModel::refreshFromPull,
                 )
             }
-            composable<MapTab> { MapScreen() }
+            composable<MapTab> { MapTabScreen(activityRepository) }
             composable<CreateActivity> { CreateActivityScreen(eventRepository, navController) }
             composable<Messages> {
                 TemporaryNav(

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -138,7 +137,8 @@ fun ActivityCard(
                         contentPadding = PaddingValues(0.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = when {
-                                isJoined -> Color(0xFFCF3838)
+                                isJoined && canLeave -> Color(0xFFCF3838)
+                                isJoined -> Color(0xFF2F6EA5)
                                 else -> Color(0xFF3E8E68)
                             },
                             disabledContainerColor = Color(0xFFB9C2BC),
@@ -148,7 +148,7 @@ fun ActivityCard(
                         Text(
                             text = when {
                                 isJoined && canLeave -> "Quitter"
-                                isJoined -> "Inscrit"
+                                isJoined -> "Organisateur"
                                 full -> "Complet"
                                 else -> "Rejoindre"
                             },

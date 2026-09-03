@@ -18,21 +18,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.LaunchedEffect
 import ch.heigvd.fitmeet.ui.map.MapScreen
+import ch.heigvd.fitmeet.ui.map.rememberPlaceName
 
 @Composable
 fun ActivityLocation() {
     var selectedLat by remember { mutableStateOf<Double?>(null) }
     var selectedLng by remember { mutableStateOf<Double?>(null) }
 
+    // the phone turns the point back into a place, so the activity is
+    // stored with a town rather than with two numbers
+    val place = rememberPlaceName(selectedLat, selectedLng)
+    LaunchedEffect(place) {
+        activityData.positionName = place?.address.orEmpty()
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         Text(
-            text = if (selectedLat == null)
-                "Appuyez sur la carte pour choisir la localisation"
-            else {
-                val lat = (selectedLat!! * 100000).toLong().toDouble() / 100000.0
-                val lng = (selectedLng!! * 100000).toLong().toDouble() / 100000.0
-                "$lat, $lng"
+            text = when {
+                selectedLat == null -> "Appuyez sur la carte pour choisir la localisation"
+                // the coordinates stay visible while the geocoder answers,
+                // so the line never goes blank between two taps
+                place != null -> place.address
+                else -> {
+                    val lat = (selectedLat!! * 100000).toLong().toDouble() / 100000.0
+                    val lng = (selectedLng!! * 100000).toLong().toDouble() / 100000.0
+                    "$lat, $lng"
+                }
             },
             color = if (selectedLat == null) Color(0xFFAAAAAA) else Color.White,
             fontWeight = FontWeight.W500,

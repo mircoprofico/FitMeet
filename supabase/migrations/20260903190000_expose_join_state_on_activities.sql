@@ -1,8 +1,11 @@
 begin;
 
 -- The list needs to know whether the current user is already attending,
--- otherwise the join button cannot turn into a leave button.
-create or replace function public.my_activities()
+-- otherwise the join button cannot turn into a leave button. The returned
+-- columns changed, so PostgreSQL requires recreating the function.
+drop function public.my_activities();
+
+create function public.my_activities()
 returns table (
   id uuid,
   title text,
@@ -10,6 +13,7 @@ returns table (
   starts_at timestamptz,
   location_name text,
   location text,
+  description text,
   level text,
   capacity integer,
   participant_count integer,
@@ -18,6 +22,7 @@ returns table (
 )
 language sql
 stable
+security invoker
 set search_path = public, extensions
 as $function$
   select
@@ -27,6 +32,7 @@ as $function$
     event.starts_at,
     event.location_name,
     st_astext(event.location::geometry),
+    event.description,
     event.level,
     event.capacity,
     participant_count.count,

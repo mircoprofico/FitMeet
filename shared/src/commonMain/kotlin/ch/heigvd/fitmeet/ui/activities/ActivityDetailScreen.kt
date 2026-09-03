@@ -5,11 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,13 +17,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +33,8 @@ import ch.heigvd.fitmeet.data.activities.sampleActivities
 import ch.heigvd.fitmeet.model.Activity
 import ch.heigvd.fitmeet.ui.components.AvatarStack
 import ch.heigvd.fitmeet.ui.components.LevelChip
+import ch.heigvd.fitmeet.ui.map.isNamedPlace
+import ch.heigvd.fitmeet.ui.map.rememberPlaceName
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -45,12 +42,22 @@ fun ActivityDetailScreen(
     activity: Activity,
     organizer: String = "",
     description: String = activity.description,
+    // the activity already carries it; kept as an override for callers that
+    // track the joined events on their side
     isJoined: Boolean = false,
+    // who attends, in the order the server gave: organiser first
+    attendeeNames: List<String> = emptyList(),
     showJoinButton: Boolean = true,
+    showLeaveButton: Boolean = false,
+    isLeaving: Boolean = false,
     onJoin: () -> Unit = {},
+    onLeave: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val uriHandler = LocalUriHandler.current
+    // the sheet has room for the street, not just the town: this is the
+    // closer look at the spot the card only summarises
+    val resolved = rememberPlaceName(activity.latitude, activity.longitude)
     Column(
         modifier = modifier
             // fillMaxWidth and not fillMaxSize: inside a bottom sheet the
@@ -108,9 +115,22 @@ fun ActivityDetailScreen(
                 InfoLine("Quand", activity.dateTime)
                 InfoLine(
                     label = "Où",
-                    value = activity.place,
+                    value = when {
+                        // the organiser's own name for the spot wins: they
+                        // knew to write "FC Forward" and the geocoder did not
+                        activity.place.isNamedPlace() -> activity.place
+                        resolved != null -> resolved.address
+                        else -> "Voir sur la carte"
+                    },
                     onClick = activity.mapUrl?.let { mapUrl -> { uriHandler.openUri(mapUrl) } },
                 )
+                // the street under the town, when the two differ and the
+                // organiser named the place themselves
+                if (activity.place.isNamedPlace() && resolved != null &&
+                    !activity.place.contains(resolved.city, ignoreCase = true)
+                ) {
+                    InfoLine("", resolved.address)
+                }
                 if (organizer.isNotBlank()) InfoLine("Organisé par", organizer)
             }
 
@@ -122,7 +142,11 @@ fun ActivityDetailScreen(
                 Text("Participants", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 Text(activity.attendance, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             }
-            AvatarStack(count = activity.participants, maxVisible = 5)
+            AvatarStack(
+                count = activity.participants,
+                initials = attendeeNames.map { it.initials() },
+                maxVisible = 5,
+            )
 
             if (showJoinButton) {
                 // same three states as the card. the state comes from the
@@ -133,7 +157,11 @@ fun ActivityDetailScreen(
                     enabled = joined || !activity.isFull,
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (joined) Color(0xFFCF3838) else Color(0xFF3E8E68),
+                        containerColor = when {
+                            joined && activity.canLeave -> Color(0xFFCF3838)
+                            joined -> Color(0xFF2F6EA5)
+                            else -> Color(0xFF3E8E68)
+                        },
                         disabledContainerColor = Color(0xFFB9C2BC),
                     ),
                     shape = RoundedCornerShape(10.dp),
@@ -141,12 +169,24 @@ fun ActivityDetailScreen(
                     Text(
                         text = when {
                             joined && activity.canLeave -> "Quitter l'activité"
-                            joined -> "Vous participez"
+                            joined -> "Organisateur"
                             activity.isFull -> "Complet"
                             else -> "Rejoindre"
                         },
                         fontSize = 15.sp,
                     )
+                }
+            }
+
+            if (showLeaveButton) {
+                Button(
+                    onClick = onLeave,
+                    enabled = !isLeaving,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC62828)),
+                    shape = RoundedCornerShape(10.dp),
+                ) {
+                    Text(if (isLeaving) "Sortie..." else "Quitter l'activité", fontSize = 15.sp)
                 }
             }
         }
@@ -181,4 +221,15 @@ private fun ActivityDetailScreenPreview() {
         organizer = "Pierre Gellet",
         description = "Match amical sur gazon. Prévoir des crampons et un maillot clair.",
     )
+}
+
+// "Mirco Profico" -> "MP", "Cher" -> "CH". the same two letters the profile
+// header shows, from a display name rather than from a first and last name.
+private fun String.initials(): String {
+    val words = trim().split(' ', '-').filter { it.isNotBlank() }
+    return when (words.size) {
+        0 -> ""
+        1 -> words[0].take(2)
+        else -> "${words.first().first()}${words.last().first()}"
+    }.uppercase()
 }

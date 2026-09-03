@@ -41,20 +41,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import ch.heigvd.fitmeet.data.messages.ConversationMessage
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
+import ch.heigvd.fitmeet.data.messages.ConversationSummary
 import ch.heigvd.fitmeet.model.Activity
 import ch.heigvd.fitmeet.ui.activities.ActivityDetailScreen
 import kotlinx.coroutines.launch
 
 
-private val Navy = Color(0xFF102E53)
+private val Navy = Color(0xFF0B2545)
 private val Green = Color(0xFF429A72)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,6 +71,8 @@ fun ConversationScreen(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var activity by remember { mutableStateOf<Activity?>(null) }
+    var conversationSummary by remember { mutableStateOf<ConversationSummary?>(null) }
+    var isLeaving by remember { mutableStateOf(false) }
     val currentUserId = conversationRepository.currentUserId()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -77,7 +82,10 @@ fun ConversationScreen(
 
     LaunchedEffect(conversationRepository, conversationId) {
         conversationRepository.getConversationSummary(conversationId)
-            .onSuccess { activity = it.activity }
+            .onSuccess { summary ->
+                conversationSummary = summary
+                activity = summary.activity
+            }
 
         conversationRepository.getMessages(conversationId)
             .onSuccess {
@@ -102,9 +110,8 @@ fun ConversationScreen(
 
         }
     }
-    val backgroundColor = Color(0xFFDDDDDD)
     val separationColor = Color(0xFFBBBBBB)
-    val textColor = Color(0xFF102E53)
+    val textColor = Color(0xFF0B2545)
     var currentMessage by remember { mutableStateOf("") }
 
 
@@ -112,7 +119,6 @@ fun ConversationScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(backgroundColor)
                 .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -162,12 +168,15 @@ fun ConversationScreen(
 
                     Text(
                         text = activity?.title ?: conversationTitle,
-                        fontSize = 28.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.W900,
                         color = textColor,
-                        modifier = Modifier.padding(10.dp, 0.dp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 10.dp, end = 10.dp)
                     )
-                    Spacer(modifier = Modifier.weight(1f))
 
                     Button(
                         onClick = {
@@ -269,7 +278,11 @@ fun ConversationScreen(
                 TextField(
                     value = currentMessage,
                     onValueChange = { currentMessage = it },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).shadow(
+                        elevation = 3.dp,
+                        spotColor = Color(0xFFBBBBBB),
+                        shape = RoundedCornerShape(50.dp),
+                    ),
                     placeholder = {
                         Text("Écrire un message...", color = Color(0XFF888888))
                     },
@@ -333,6 +346,23 @@ fun ConversationScreen(
                     ActivityDetailScreen(
                         activity = it,
                         showJoinButton = false,
+                        // An accessible conversation means the user already
+                        // attends. Only a non-organizer may leave it.
+                        showLeaveButton = it.canLeave,
+                        isLeaving = isLeaving,
+                        onLeave = {
+                            scope.launch {
+                                isLeaving = true
+                                val result = conversationRepository.leaveActivity(it.id)
+                                isLeaving = false
+                                if (result.isSuccess) {
+                                    showDetails = false
+                                    navController.popBackStack()
+                                } else {
+                                    errorMessage = result.message
+                                }
+                            }
+                        },
                     )
                 }
 

@@ -62,14 +62,12 @@ fun ConversationListScreen(
         isLoading = false
     }
 
-    val backgroundColor = Color(0xFFFFFFFF)
     val separationColor = Color(0xFFBBBBBB)
-    val textColor = Color(0xFF102E53)
+    val textColor = Color(0xFF0B2545)
 
     MaterialTheme {
         Column(
             modifier = Modifier
-                .background(backgroundColor)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -107,8 +105,7 @@ fun ConversationListScreen(
                 else -> LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f)
-                        .background(backgroundColor),
+                        .weight(1f),
                     contentPadding = PaddingValues(bottom = 10.dp)
 
                 ) {
