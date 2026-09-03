@@ -7,6 +7,7 @@ import android.location.LocationManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import android.location.LocationListener
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -97,6 +98,7 @@ actual fun PlatformMap(
 @Composable
 actual fun LocationEffect(onLocation: (Double, Double) -> Unit) {
     val context = LocalContext.current
+    val callback by rememberUpdatedState(onLocation)
 
     var hasPermission by remember {
         mutableStateOf(
@@ -113,13 +115,19 @@ actual fun LocationEffect(onLocation: (Double, Double) -> Unit) {
         if (!hasPermission) permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
     }
 
-    LaunchedEffect(hasPermission) {
-        if (!hasPermission) return@LaunchedEffect
+    DisposableEffect(hasPermission) {
+        if (!hasPermission) return@DisposableEffect onDispose {}
+        val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val listener = LocationListener { loc -> callback(loc.latitude, loc.longitude) }
         try {
-            val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            val location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+            // emit last known location immediately so the camera does not wait
+            val last = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
                 ?: lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-            location?.let { onLocation(it.latitude, it.longitude) }
+            last?.let { callback(it.latitude, it.longitude) }
+            // then keep updating so every visit to the map tab centres on the
+            // current position, not a stale one
+            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5_000L, 10f, listener)
         } catch (_: SecurityException) {}
+        onDispose { lm.removeUpdates(listener) }
     }
 }
