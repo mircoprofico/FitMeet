@@ -18,6 +18,9 @@ data class Activity(
     val place: String,
     /** A Google Maps search URL derived from the event's geographic point. */
     val mapUrl: String? = null,
+    // same point, kept as numbers so the list can sort by distance
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val level: Level,
     val participants: Int,
     val capacity: Int,
@@ -55,6 +58,8 @@ data class Activity(
             dateTime = displayDate(startsAt),
             place = locationName,
             mapUrl = googleMapsUrl(location),
+            latitude = pointOf(location)?.first,
+            longitude = pointOf(location)?.second,
             level = when (levelSlug) {
                 "beginner" -> Level.BEGINNER
                 "intermediate" -> Level.INTERMEDIATE
@@ -75,6 +80,14 @@ data class Activity(
         }
 
         // PostGIS points use longitude first: POINT(longitude latitude).
+        private fun pointOf(location: String?): Pair<Double, Double>? {
+            val g = location?.trim()?.let { POINT_PATTERN.matchEntire(it) }?.groupValues
+                ?: return null
+            val lat = g[2].toDoubleOrNull() ?: return null
+            val lng = g[1].toDoubleOrNull() ?: return null
+            return lat to lng
+        }
+
         private fun googleMapsUrl(location: String?): String? {
             val coordinates = location
                 ?.trim()

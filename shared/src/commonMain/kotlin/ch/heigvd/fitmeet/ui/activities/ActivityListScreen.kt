@@ -26,6 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.heigvd.fitmeet.data.activities.sampleActivities
 import ch.heigvd.fitmeet.model.Activity
+import ch.heigvd.fitmeet.model.distanceFrom
+import ch.heigvd.fitmeet.ui.map.LocationEffect
 import ch.heigvd.fitmeet.ui.components.ActivityCard
 import ch.heigvd.fitmeet.ui.theme.Sport
 import ch.heigvd.fitmeet.ui.components.EmptyState
@@ -48,6 +50,15 @@ fun ActivityListScreen(
     // and never loses its scroll position.
     var selected by remember { mutableStateOf<Activity?>(null) }
 
+    // the phone position, from the same source the map uses.
+    // null until the user answers the permission prompt.
+    var myLat by remember { mutableStateOf<Double?>(null) }
+    var myLng by remember { mutableStateOf<Double?>(null) }
+    LocationEffect { lat, lng ->
+        myLat = lat
+        myLng = lng
+    }
+
     // when on a sealed class is exhaustive: add a state and this stops
     // compiling until it is handled here too
     when (state) {
@@ -67,10 +78,14 @@ fun ActivityListScreen(
                 return
             }
 
-            // sortedBy returns a new list, it does not touch the one we got.
-            // iso dates sort as plain text, so no date parsing needed here.
-            // TODO: sort by distance first once the events carry coordinates (#75)
-            val sorted = state.activities.sortedBy { it.startsAt }
+            // distance first, then date, like the issue asks.
+            // nullsLast matters: compareBy alone puts nulls FIRST, so an
+            // activity without coordinates would look like the closest one.
+            // iso dates sort as plain text, no parsing needed.
+            val sorted = state.activities.sortedWith(
+                compareBy<Activity, Double?>(nullsLast()) { it.distanceFrom(myLat, myLng) }
+                    .thenBy { it.startsAt },
+            )
 
             // no sport picked means everything, otherwise keep the matches
             val visible = if (selectedSports.isEmpty()) sorted
