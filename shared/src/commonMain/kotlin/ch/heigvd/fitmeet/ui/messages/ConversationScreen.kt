@@ -135,9 +135,14 @@ fun ConversationScreen(
                     modifier = Modifier.padding(0.dp, 0.dp),
                 ) {
 
-                    IconButton(
+                    Button(
                         onClick = { navController.popBackStack() },
                         modifier = Modifier.size(48.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = Navy,
+                        ),
+                        contentPadding = PaddingValues(0.dp),
                     ) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -151,6 +156,8 @@ fun ConversationScreen(
                             )
                         }
                     }
+
+
 
 
                     Text(
