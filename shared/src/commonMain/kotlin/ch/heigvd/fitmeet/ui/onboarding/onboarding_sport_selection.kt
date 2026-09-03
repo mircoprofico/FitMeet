@@ -72,7 +72,12 @@ fun onboarding_2_sports(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Column(modifier = Modifier.widthIn(max = 420.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 420.dp)
+                    .weight(1f),
+            ) {
                 Text(
                     text = "Quels sports pratiquez-vous ?",
                     color = LightText,
@@ -126,7 +131,7 @@ fun onboarding_2_sports(
                     }
                 },
                 enabled = !isSaving,
-                modifier = Modifier.align(Alignment.End),
+                modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Green, contentColor = Color.White),
             ) {
                 Text(if (isSaving) "Enregistrement…" else "Terminer", fontWeight = FontWeight.Bold)
