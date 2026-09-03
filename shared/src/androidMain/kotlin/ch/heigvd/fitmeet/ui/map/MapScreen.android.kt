@@ -55,10 +55,13 @@ actual fun PlatformMap(
     val currentOnActivityClick by rememberUpdatedState(onActivityClick)
     val currentActivitiesById by rememberUpdatedState(activities.associateBy { it.id })
 
-    LaunchedEffect(latitude, longitude) {
-        mapRef?.animateCamera(
-            CameraUpdateFactory.newLatLngZoom(LatLng(latitude, longitude), DEFAULT_ZOOM)
-        )
+    // Center the camera once the map is ready. Using mapRef as key guarantees
+    // this runs after getMapAsync, when the map can actually receive commands.
+    val currentLat by rememberUpdatedState(latitude)
+    val currentLng by rememberUpdatedState(longitude)
+    LaunchedEffect(mapRef) {
+        val map = mapRef ?: return@LaunchedEffect
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(currentLat, currentLng), DEFAULT_ZOOM))
     }
 
     LaunchedEffect(selectedLat, selectedLng, mapRef) {
@@ -93,13 +96,7 @@ actual fun PlatformMap(
                 mapView.onResume()
                 mapView.getMapAsync { map ->
                     mapRef = map
-                    map.setStyle(Style.Builder().fromUri(STYLE_URL)) {
-                        map.moveCamera(
-                            CameraUpdateFactory.newLatLngZoom(
-                                LatLng(latitude, longitude), DEFAULT_ZOOM
-                            )
-                        )
-                    }
+                    map.setStyle(Style.Builder().fromUri(STYLE_URL))
                     map.addOnMapClickListener { latLng ->
                         currentOnMapClick?.invoke(latLng.latitude, latLng.longitude)
                         true

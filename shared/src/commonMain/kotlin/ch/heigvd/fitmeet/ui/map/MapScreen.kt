@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -11,6 +12,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import ch.heigvd.fitmeet.model.Activity
+import kotlinx.coroutines.delay
+
+private const val FALLBACK_LAT = 46.7785  // Yverdon-les-Bains
+private const val FALLBACK_LNG = 6.6411
 
 @Composable
 fun MapScreen(
@@ -28,8 +33,17 @@ fun MapScreen(
 
     if (selectedLat == null) {
         LocationEffect { lat, lng ->
-            cameraLat = lat
-            cameraLng = lng
+            if (cameraLat == null) {
+                cameraLat = lat
+                cameraLng = lng
+            }
+        }
+        LaunchedEffect(Unit) {
+            delay(5_000)
+            if (cameraLat == null) {
+                cameraLat = FALLBACK_LAT
+                cameraLng = FALLBACK_LNG
+            }
         }
     }
 
