@@ -11,6 +11,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -51,8 +55,9 @@ fun ComponentCatalog(modifier: Modifier = Modifier) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            AvatarStack(count = 8)
-            AvatarStack(count = 3)
+            // named, half named, and count only: the three cases the sheet hits
+            AvatarStack(count = 3, initials = listOf("MP", "PG", "FB"))
+            AvatarStack(count = 8, initials = listOf("MP", "PG"))
             AvatarStack(count = 1)
         }
 
@@ -79,6 +84,64 @@ fun ComponentCatalog(modifier: Modifier = Modifier) {
             capacity = 12,
             onClick = {},
             onJoin = {},
+        )
+
+        // the three states the join button can be in, side by side: this is
+        // the part that breaks most easily when the card is touched
+        Section("Activity card, joined and full")
+        ActivityCard(
+            title = "Sortie velo du lac",
+            sport = Sport.CYCLING,
+            dateTime = "Samedi - 09h00",
+            place = "Lausanne, Ouchy",
+            level = Level.ALL,
+            participants = 5,
+            capacity = 12,
+            isJoined = true,
+            canLeave = true,
+            onClick = {},
+            onJoin = {},
+        )
+        // organiser: joined, but with no way out, so the button only states it
+        ActivityCard(
+            title = "Course matinale",
+            sport = Sport.RUNNING,
+            dateTime = "Dimanche - 07h30",
+            place = "Nyon, Bord du lac",
+            level = Level.INTERMEDIATE,
+            participants = 2,
+            capacity = 8,
+            isJoined = true,
+            canLeave = false,
+            onClick = {},
+            onJoin = {},
+        )
+
+        Section("Sport filter bar")
+        // real state, so the pills can actually be picked from the catalog
+        var pickedSports by remember { mutableStateOf(setOf(Sport.FOOTBALL)) }
+        SportFilterBar(
+            selected = pickedSports,
+            activeFilters = pickedSports.size + 1,  // as if a date was picked too
+            onToggle = { sport ->
+                pickedSports =
+                    if (sport in pickedSports) pickedSports - sport else pickedSports + sport
+            },
+        )
+
+        Section("Filter sheet")
+        var dateRange by remember { mutableStateOf(DateRange.THIS_WEEK) }
+        var onlyWithSpots by remember { mutableStateOf(true) }
+        FilterSheet(
+            dateRange = dateRange,
+            onDateRange = { dateRange = it },
+            onlyWithSpots = onlyWithSpots,
+            onOnlyWithSpots = { onlyWithSpots = it },
+            onClearAll = {
+                dateRange = DateRange.ALL
+                onlyWithSpots = false
+            },
+            onClose = {},
         )
 
         Section("Empty state")

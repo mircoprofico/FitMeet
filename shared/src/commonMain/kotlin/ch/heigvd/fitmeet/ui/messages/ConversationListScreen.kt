@@ -64,7 +64,7 @@ fun ConversationListScreen(
 
     val backgroundColor = Color(0xFFFFFFFF)
     val separationColor = Color(0xFFBBBBBB)
-    val textColor = Color(0xFF102E53)
+    val textColor = Color(0xFF0B2545)
 
     MaterialTheme {
         Column(
