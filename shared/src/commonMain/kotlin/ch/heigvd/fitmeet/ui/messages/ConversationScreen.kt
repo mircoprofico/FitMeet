@@ -41,9 +41,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -166,12 +168,15 @@ fun ConversationScreen(
 
                     Text(
                         text = activity?.title ?: conversationTitle,
-                        fontSize = 28.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.W900,
                         color = textColor,
-                        modifier = Modifier.padding(10.dp, 0.dp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 10.dp, end = 10.dp)
                     )
-                    Spacer(modifier = Modifier.weight(1f))
 
                     Button(
                         onClick = {
@@ -273,7 +278,11 @@ fun ConversationScreen(
                 TextField(
                     value = currentMessage,
                     onValueChange = { currentMessage = it },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).shadow(
+                        elevation = 3.dp,
+                        spotColor = Color(0xFFBBBBBB),
+                        shape = RoundedCornerShape(50.dp),
+                    ),
                     placeholder = {
                         Text("Écrire un message...", color = Color(0XFF888888))
                     },
