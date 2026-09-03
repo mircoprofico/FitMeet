@@ -50,6 +50,7 @@ import androidx.navigation.NavHostController
 import ch.heigvd.fitmeet.data.messages.ConversationMessage
 import ch.heigvd.fitmeet.data.messages.ConversationRepository
 import ch.heigvd.fitmeet.model.Activity
+import ch.heigvd.fitmeet.data.activities.ActivityRepository
 import ch.heigvd.fitmeet.ui.activities.ActivityDetailScreen
 import kotlinx.coroutines.launch
 
@@ -63,6 +64,9 @@ fun ConversationScreen(
     conversationTitle: String = "",
     navController: NavHostController,
     conversationRepository: ConversationRepository,
+    // null keeps the sheet read only, which is what the previews want.
+    // given one, the same join and leave button as the list shows up here.
+    activityRepository: ActivityRepository? = null,
 ) {
     var messages by remember { mutableStateOf<List<ConversationMessage>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -329,13 +333,36 @@ fun ConversationScreen(
                     skipPartiallyExpanded = true
                 )
             ) {
-                activity?.let {
+                // an empty sheet is a full height white rectangle with nothing
+                // in it, which reads as the app having crashed. the summary can
+                // simply not have arrived yet, so say so.
+                val details = activity
+                if (details == null) {
+                    Text(
+                        text = "Details de l'activite indisponibles.",
+                        color = textColor,
+                        modifier = Modifier.padding(24.dp),
+                    )
+                } else {
                     ActivityDetailScreen(
-                        activity = it,
-                        showJoinButton = false,
+                        activity = details,
+                        showJoinButton = activityRepository != null,
+                        onJoin = {
+                            val repository = activityRepository
+                            if (repository != null) {
+                                scope.launch {
+                                    if (details.canLeave) repository.leave(details.id)
+                                    else repository.join(details.id)
+                                    // reread rather than guess: the sheet then
+                                    // shows the count the server really has
+                                    conversationRepository
+                                        .getConversationSummary(conversationId)
+                                        .onSuccess { activity = it.activity }
+                                }
+                            }
+                        },
                     )
                 }
-
             }
         }
 

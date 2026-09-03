@@ -168,6 +168,7 @@ fun FitMeetNavHost(
                     conversationTitle = conversation.conversationTitle,
                     navController = navController,
                     conversationRepository = conversationRepository,
+                    activityRepository = activityRepository,
                 )
             }
         }

@@ -43,6 +43,7 @@ private data class ConversationRow(
     val level: String,
     val capacity: Int,
     @SerialName("participant_count") val participantCount: Int,
+    @SerialName("is_joined") val isJoined: Boolean = false,
     @SerialName("is_organizer") val isOrganizer: Boolean,
     @SerialName("last_message_at") val lastMessageAt: String? = null,
 )
@@ -61,6 +62,10 @@ private fun ConversationRow.toSummary() = ConversationSummary(
         levelSlug = level,
         participants = participantCount,
         capacity = capacity,
+        // without these the sheet opened from a conversation could only ever
+        // offer "Rejoindre", to people who are already in the event
+        isJoined = isJoined,
+        isOrganizer = isOrganizer,
     ),
     isOrganizer = isOrganizer,
     lastMessageAt = lastMessageAt,
